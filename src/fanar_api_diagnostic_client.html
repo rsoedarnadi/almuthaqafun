@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fanar API Diagnostic Console</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans">
+
+    <!-- Header Banner -->
+    <header class="bg-slate-900 border-b border-slate-800 px-6 py-4 flex justify-between items-center shrink-0">
+        <div class="flex items-center gap-3">
+            <div class="bg-emerald-500/20 text-emerald-400 p-2 rounded-xl border border-emerald-500/30">
+                <i data-lucide="network" class="w-6 h-6"></i>
+            </div>
+            <div>
+                <h1 class="text-lg font-bold text-white flex items-center gap-2">
+                    Fanar Connection Diagnostics
+                </h1>
+                <p class="text-xs text-slate-400">Validate endpoints, CORS, and response structures in real-time</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-2 text-xs bg-slate-950 px-3 py-1.5 rounded-lg border border-slate-800">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            Browser Sandboxed Environment
+        </div>
+    </header>
+
+    <!-- Main Dynamic Interface -->
+    <div class="flex-1 flex flex-col lg:flex-row overflow-hidden">
+        
+        <!-- Left Side: Interactive Configuration form -->
+        <aside class="w-full lg:w-[480px] bg-slate-900 border-r border-slate-800 p-6 flex flex-col gap-5 overflow-y-auto shrink-0">
+            
+            <!-- API Endpoint Options -->
+            <div>
+                <label class="text-xs font-semibold uppercase tracking-wider text-emerald-400 block mb-2">
+                    1. Target Gateway URL
+                </label>
+                <div class="space-y-2">
+                    <select id="url-selector" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3.5 py-2 text-sm text-slate-200 focus:outline-none focus:border-emerald-500">
+                        <option value="https://api.fanar.qa/v1">https://api.fanar.qa/v1 (From your Unity Script)</option>
+                        <option value="https://api.fanar.qcri.org/v1">https://api.fanar.qcri.org/v1 (Alternative QCRI Domain)</option>
+                        <option value="custom">-- Use Custom Endpoint --</option>
+                    </select>
+                    <input type="text" id="custom-url" placeholder="https://your-custom-url/v1" class="hidden w-full bg-slate-950 border border-slate-800 rounded-lg px-3.5 py-2 text-sm text-slate-200 focus:outline-none focus:border-emerald-500">
+                </div>
+            </div>
+
+            <!-- Credentials -->
+            <div>
+                <div class="flex justify-between items-center mb-1.5">
+                    <label class="text-xs font-semibold uppercase tracking-wider text-emerald-400">
+                        2. Fanar API Key
+                    </label>
+                    <span class="text-[10px] text-slate-500">Will not be saved/stored</span>
+                </div>
+                <div class="relative">
+                    <input type="password" id="api-key" placeholder="Paste your API key here..." class="w-full bg-slate-950 border border-slate-800 rounded-lg pl-3.5 pr-10 py-2 text-sm text-slate-200 focus:outline-none focus:border-emerald-500">
+                    <button onclick="toggleKeyVisibility()" class="absolute right-3 top-2.5 text-slate-400 hover:text-slate-200">
+                        <i data-lucide="eye" id="eye-icon" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Model Parameters -->
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="text-xs font-semibold uppercase tracking-wider text-slate-400 block mb-1.5">
+                        Model ID
+                    </label>
+                    <select id="model-id" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3.5 py-2 text-sm text-slate-200 focus:outline-none focus:border-emerald-500">
+                        <option value="Fanar-S-1-7B">Fanar-S-1-7B (Lightweight)</option>
+                        <option value="Fanar-C-2-27B" selected>Fanar-C-2-27B (Large Complex)</option>
+                        <option value="Fanar-Sadiq">Fanar-Sadiq (Islamic Core)</option>
+                        <option value="Fanar-Sadiq-Agentic">Fanar-Sadiq-Agentic</option>
+                        <option value="Islamic-RAG">Islamic-RAG</option>
+                        <option value="Fanar">Fanar Base</option>
+                        <option value="Fanar-Agentic">Fanar-Agentic</option>
+                        <option value="Fanar-C-1-8.7B">Fanar-C-1-8.7B</option>
+                        <option value="Fanar-Oryx-IVU-2">Fanar-Oryx-IVU-2 (Vision)</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="text-xs font-semibold uppercase tracking-wider text-slate-400 block mb-1.5">
+                        Max Tokens
+                    </label>
+                    <input type="number" id="max-tokens" value="300" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3.5 py-2 text-sm text-slate-200 focus:outline-none focus:border-emerald-500">
+                </div>
+            </div>
+
+            <!-- Prompts -->
+            <div class="space-y-3">
+                <div>
+                    <label class="text-xs font-semibold uppercase tracking-wider text-slate-400 block mb-1.5">
+                        System Instruction
+                    </label>
+                    <input type="text" id="system-prompt" value="You are a helpful Qatari cultural guide. Answer in Arabic and English." class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3.5 py-2 text-sm text-slate-200 focus:outline-none focus:border-emerald-500">
+                </div>
+                <div>
+                    <label class="text-xs font-semibold uppercase tracking-wider text-slate-400 block mb-1.5">
+                        Test Question
+                    </label>
+                    <textarea id="user-prompt" rows="3" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3.5 py-2 text-sm text-slate-200 focus:outline-none focus:border-emerald-500">ما هي أبرز معالم قطر التاريخية؟</textarea>
+                </div>
+            </div>
+
+            <!-- Action Button -->
+            <button onclick="testConnection()" id="run-btn" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-3 rounded-xl transition-all shadow-lg shadow-emerald-950/40 flex items-center justify-center gap-2">
+                <i data-lucide="play" class="w-4 h-4"></i> Run Diagnostic Test
+            </button>
+
+        </aside>
+
+        <!-- Right Side: Live Logs & Outputs -->
+        <main class="flex-1 p-6 flex flex-col gap-6 overflow-y-auto">
+            
+            <!-- Real-time Status Card -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl flex items-center gap-4">
+                    <div class="p-3 rounded-lg bg-slate-950 text-slate-400" id="status-icon-box">
+                        <i data-lucide="help-circle" class="w-5 h-5" id="status-icon"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs text-slate-400">Connection State</p>
+                        <p class="text-sm font-bold text-slate-300" id="status-label">Idle</p>
+                    </div>
+                </div>
+                <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl flex items-center gap-4">
+                    <div class="p-3 rounded-lg bg-slate-950 text-slate-400" id="http-icon-box">
+                        <i data-lucide="file-key" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs text-slate-400">HTTP Status Code</p>
+                        <p class="text-sm font-bold text-slate-300" id="http-label">---</p>
+                    </div>
+                </div>
+                <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl flex items-center gap-4">
+                    <div class="p-3 rounded-lg bg-slate-950 text-slate-400" id="time-icon-box">
+                        <i data-lucide="clock" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs text-slate-400">Round-trip Time</p>
+                        <p class="text-sm font-bold text-slate-300" id="time-label">0 ms</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Trace Diagnostics Box -->
+            <div class="flex-1 flex flex-col min-h-[300px] bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
+                <div class="bg-slate-950 px-4 py-2.5 border-b border-slate-800 flex justify-between items-center text-xs text-slate-400">
+                    <span class="font-mono">Trace Logs</span>
+                    <button onclick="clearConsole()" class="hover:text-white flex items-center gap-1">
+                        <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Clear Console
+                    </button>
+                </div>
+                <div id="terminal" class="flex-1 p-4 font-mono text-xs text-emerald-400 space-y-2 overflow-y-auto max-h-[450px]">
+                    <p class="text-slate-500">// Configure details on the left and run test to generate network traces...</p>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Script Execution -->
+    <script>
+        // Start Lucide
+        window.onload = () => {
+            lucide.createIcons();
+            
+            // Dropdown control for custom URLs
+            const selector = document.getElementById('url-selector');
+            const customInput = document.getElementById('custom-url');
+            selector.addEventListener('change', () => {
+                if(selector.value === 'custom') {
+                    customInput.classList.remove('hidden');
+                } else {
+                    customInput.classList.add('hidden');
+                }
+            });
+        }
+
+        function logToTerminal(text, type = "info") {
+            const term = document.getElementById('terminal');
+            const p = document.createElement('p');
+            
+            // Set styles based on logging category
+            if(type === "error") {
+                p.className = "text-red-400 font-bold border-l-2 border-red-500 pl-2 my-1";
+                p.innerHTML = `<span class="text-red-500">[ERROR]</span> ${text}`;
+            } else if (type === "success") {
+                p.className = "text-emerald-400 font-bold border-l-2 border-emerald-500 pl-2 my-1";
+                p.innerHTML = `<span class="text-emerald-500">[SUCCESS]</span> ${text}`;
+            } else if (type === "warning") {
+                p.className = "text-amber-400 border-l-2 border-amber-500 pl-2 my-1";
+                p.innerHTML = `<span class="text-amber-500">[WARN]</span> ${text}`;
+            } else {
+                p.className = "text-slate-300";
+                p.innerHTML = `<span class="text-emerald-600">[INFO]</span> ${text}`;
+            }
+            
+            term.appendChild(p);
+            term.scrollTop = term.scrollHeight;
+        }
+
+        function clearConsole() {
+            document.getElementById('terminal').innerHTML = '<p class="text-slate-500">// Console cleared.</p>';
+        }
+
+        function toggleKeyVisibility() {
+            const keyInput = document.getElementById('api-key');
+            const eye = document.getElementById('eye-icon');
+            if(keyInput.type === 'password') {
+                keyInput.type = 'text';
+                eye.setAttribute('data-lucide', 'eye-off');
+            } else {
+                keyInput.type = 'password';
+                eye.setAttribute('data-lucide', 'eye');
+            }
+            lucide.createIcons();
+        }
+
+        // --- CORE NETWORK DIAGNOSTIC LOGIC ---
+        async function testConnection() {
+            const runBtn = document.getElementById('run-btn');
+            const key = document.getElementById('api-key').value.trim();
+            const selector = document.getElementById('url-selector').value;
+            const customUrl = document.getElementById('custom-url').value.trim();
+            
+            const baseUrl = selector === 'custom' ? customUrl : selector;
+            const model = document.getElementById('model-id').value.trim();
+            const maxTokens = parseInt(document.getElementById('max-tokens').value);
+            const sysPrompt = document.getElementById('system-prompt').value.trim();
+            const userPrompt = document.getElementById('user-prompt').value.trim();
+
+            if(!baseUrl) {
+                logToTerminal("Please configure a valid Base URL target.", "error");
+                return;
+            }
+
+            // Reset UI states
+            runBtn.disabled = true;
+            runBtn.classList.add('opacity-50');
+            document.getElementById('status-label').textContent = "Connecting...";
+            document.getElementById('status-icon-box').className = "p-3 rounded-lg bg-amber-500/20 text-amber-400";
+            document.getElementById('status-icon').setAttribute('data-lucide', 'refresh-cw');
+            document.getElementById('status-icon').classList.add('animate-spin');
+            lucide.createIcons();
+
+            clearConsole();
+            logToTerminal("Initiating Fanar API Diagnostics...");
+            logToTerminal(`Target Endpoint Base: ${baseUrl}`);
+            
+            const fullUrl = `${baseUrl.replace(/\/$/, '')}/chat/completions`;
+            logToTerminal(`Derived Chat Target: ${fullUrl}`);
+
+            // Payload Structure matching Unity's serialized schema
+            const payload = {
+                model: model,
+                messages: [
+                    { role: "system", content: sysPrompt },
+                    { role: "user", content: userPrompt }
+                ],
+                max_tokens: maxTokens
+            };
+
+            logToTerminal("Constructed JSON Payload Structure:");
+            logToTerminal(JSON.stringify(payload, null, 2));
+
+            // Set up authorization trace
+            const headers = {
+                "Content-Type": "application/json"
+            };
+
+            if (key) {
+                headers["Authorization"] = `Bearer ${key}`;
+                logToTerminal(`Authorization Header Configured: Bearer ${key.substring(0, 6)}...[hidden]`);
+            } else {
+                logToTerminal("Authorization Header is empty. Call might fail with a 401 Unauthenticated unless endpoint is open.", "warning");
+            }
+
+            const startTime = performance.now();
+            
+            try {
+                logToTerminal("Firing fetch request across browser connection layer...");
+                
+                const response = await fetch(fullUrl, {
+                    method: "POST",
+                    headers: headers,
+                    body: JSON.stringify(payload)
+                });
+
+                const endTime = performance.now();
+                const latency = (endTime - startTime).toFixed(0);
+
+                // Update UI status bars
+                document.getElementById('time-label').textContent = `${latency} ms`;
+                document.getElementById('http-label').textContent = response.status;
+                
+                if (response.ok) {
+                    document.getElementById('http-icon-box').className = "p-3 rounded-lg bg-emerald-500/20 text-emerald-400";
+                    document.getElementById('status-label').textContent = "Success";
+                    document.getElementById('status-icon-box').className = "p-3 rounded-lg bg-emerald-500/20 text-emerald-400";
+                    document.getElementById('status-icon').setAttribute('data-lucide', 'check-circle-2');
+                    
+                    logToTerminal(`Server responded successfully with HTTP status ${response.status}`, "success");
+                    
+                    const data = await response.json();
+                    logToTerminal("=== RAW JSON RESPONSE FROM SERVER ===");
+                    logToTerminal(JSON.stringify(data, null, 2));
+
+                    // Parse like Unity client does
+                    const content = data.choices?.[0]?.message?.content;
+                    if (content) {
+                        logToTerminal("=== EXTRACTED DIALOGUE CONTENT ===", "success");
+                        logToTerminal(content);
+                    } else {
+                        logToTerminal("Server response was successfully received, but it doesn't match standard OpenAI format structure.", "warning");
+                    }
+                } else {
+                    document.getElementById('http-icon-box').className = "p-3 rounded-lg bg-red-500/20 text-red-400";
+                    document.getElementById('status-label').textContent = `Failed (HTTP ${response.status})`;
+                    document.getElementById('status-icon-box').className = "p-3 rounded-lg bg-red-500/20 text-red-400";
+                    document.getElementById('status-icon').setAttribute('data-lucide', 'x-circle');
+                    
+                    logToTerminal(`Server rejected request with status code: ${response.status}`, "error");
+                    
+                    try {
+                        const errorBody = await response.text();
+                        logToTerminal(`Response body: ${errorBody}`, "error");
+                    } catch (e) {
+                        logToTerminal("Could not read error response body.", "warning");
+                    }
+                }
+
+            } catch (err) {
+                const endTime = performance.now();
+                document.getElementById('time-label').textContent = "---";
+                document.getElementById('http-label').textContent = "ERR";
+                document.getElementById('http-icon-box').className = "p-3 rounded-lg bg-red-500/20 text-red-400";
+                document.getElementById('status-label').textContent = "Connection Error";
+                document.getElementById('status-icon-box').className = "p-3 rounded-lg bg-red-500/20 text-red-400";
+                document.getElementById('status-icon').setAttribute('data-lucide', 'alert-triangle');
+
+                logToTerminal(`Connection Error occurred! Raw Trace: ${err.message}`, "error");
+                
+                // Advanced Troubleshooting Recommendations based on caught browser error parameters
+                logToTerminal("---------- TROUBLESHOOTING TIPS ----------", "warning");
+                if (err.message.includes("Failed to fetch")) {
+                    logToTerminal("1. DNS Lookup Failure / Network Offline: Verify you are connected to the internet and the domain exists.", "warning");
+                    logToTerminal("2. CORS policy block: The Fanar server might not allow API requests directly from Web Browsers. If testing in Unity WebGL, check server settings.", "warning");
+                    logToTerminal("3. SSL Cert rejection: If the API endpoint uses an untrusted or self-signed certificate, browsers and Unity will automatically terminate the connection.", "warning");
+                }
+            } finally {
+                // Restore run button
+                runBtn.disabled = false;
+                runBtn.classList.remove('opacity-50');
+                document.getElementById('status-icon').classList.remove('animate-spin');
+                lucide.createIcons();
+            }
+        }
+    </script>
+</body>
+</html>
