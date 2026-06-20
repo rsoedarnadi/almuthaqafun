@@ -1,0 +1,367 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Fanar Evening Exterior</title>
+  <style>html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#211928}canvas{display:block;width:100%;height:100%}</style>
+  <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"}}</script>
+</head>
+<body>
+<script type="module">
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+let scene, camera, renderer, controls, fanarMosque, entranceHotspot;
+const clock = new THREE.Clock();
+const raycaster = new THREE.Raycaster();
+const pointer = new THREE.Vector2();
+const hotspotTargets = [];
+
+// TUNE MODEL HERE.
+const MOSQUE_SCALE = 1;
+const PLATFORM_TOP = .42;
+const MOSQUE_POSITION = new THREE.Vector3(0,PLATFORM_TOP,0);
+const MOSQUE_Y_ROTATION = 0;
+// TUNE HOTSPOT HERE if the GLB has no Entrance_Hotspot_Position_Marker.
+const HOTSPOT_FALLBACK_POSITION = new THREE.Vector3(0,PLATFORM_TOP+.18,6);
+// CORNICHE IMAGE: place your panorama at one of these paths, relative to this HTML file.
+// The code will try them in order, so both spellings are supported.
+const CORNICHE_IMAGE_URLS = [
+  './images/corniche.png',
+];
+
+// BACKDROP TUNING.
+// Full cylinder = no visible rectangular poster edges when orbiting.
+const BACKDROP_RADIUS = 95;
+const BACKDROP_HEIGHT = 175;
+const BACKDROP_CENTER_Y = 30;
+const BACKDROP_ROTATION_Y = Math.PI / 2;
+// Render order fix: sky is drawn first, Corniche backdrop second, mosque/ground last.
+// This prevents the shader sky sphere from covering the panorama.
+const SKY_RENDER_ORDER = -30;
+const BACKDROP_RENDER_ORDER = -20;
+const HAZE_RENDER_ORDER = -10;
+// TUNE INITIAL CAMERA DIRECTION HERE.
+const CAMERA_DIRECTION = new THREE.Vector3(1.2,.72,1.65).normalize();
+
+init();
+
+function init(){
+  scene=new THREE.Scene();
+  scene.fog=new THREE.FogExp2(0x8d715f,.0065);
+  camera=new THREE.PerspectiveCamera(38,innerWidth/innerHeight,.1,2500);
+  camera.position.set(28,18,36);
+  renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});
+  renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+  renderer.setSize(innerWidth,innerHeight);
+  renderer.outputColorSpace=THREE.SRGBColorSpace;
+  renderer.toneMapping=THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure=1.12;
+  renderer.shadowMap.enabled=true;
+  renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+  document.body.appendChild(renderer.domElement);
+
+  // 360 VIEW: drag to orbit fully around the building; wheel/pinch to zoom.
+  controls=new OrbitControls(camera,renderer.domElement);
+  controls.enableDamping=true;
+  controls.dampingFactor=.065;
+  controls.enablePan=false;
+  controls.enableZoom=true;
+  controls.minDistance=10;
+  controls.maxDistance=120;
+  controls.minPolarAngle=Math.PI*.12;
+  controls.maxPolarAngle=Math.PI/2;
+  controls.minAzimuthAngle=-Infinity;
+  controls.maxAzimuthAngle=Infinity;
+  controls.autoRotate=false;
+
+  createCourtyardGround(); createCornicheBackdrop(); createHorizonBlend();
+  createGrassPatches(); createLighting(); loadFanarMosque();
+  renderer.domElement.addEventListener('pointermove',onPointerMove);
+  renderer.domElement.addEventListener('pointerdown',onPointerDown);
+  addEventListener('resize',onResize);
+  animate();
+}
+
+function loadFanarMosque(){
+  const draco=new DRACOLoader();
+  draco.setDecoderPath('https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/libs/draco/');
+  const loader=new GLTFLoader(); loader.setDRACOLoader(draco);
+  loader.load('./models/fanar_mosque.glb',gltf=>{
+    fanarMosque=gltf.scene; fanarMosque.name='Fanar_Mosque_Hero';
+    fanarMosque.scale.setScalar(MOSQUE_SCALE);
+    fanarMosque.rotation.y=MOSQUE_Y_ROTATION;
+    fanarMosque.position.copy(MOSQUE_POSITION);
+    scene.add(fanarMosque); fanarMosque.updateMatrixWorld(true);
+    let box=new THREE.Box3().setFromObject(fanarMosque),center=box.getCenter(new THREE.Vector3());
+    fanarMosque.position.x+=MOSQUE_POSITION.x-center.x;
+    fanarMosque.position.z+=MOSQUE_POSITION.z-center.z;
+    fanarMosque.position.y+=MOSQUE_POSITION.y-box.min.y;
+    fanarMosque.updateMatrixWorld(true);
+    fanarMosque.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;}});
+    box.setFromObject(fanarMosque); createEntranceHotspot(fanarMosque); frameCamera(box);
+  },undefined,error=>{
+    console.error('Failed to load ./models/fanar_mosque.glb',error);
+    fanarMosque=createPlaceholderTower(); scene.add(fanarMosque);
+    const box=new THREE.Box3().setFromObject(fanarMosque);
+    createEntranceHotspot(fanarMosque); frameCamera(box);
+  });
+}
+
+function createEveningSky(){
+  const mat=new THREE.ShaderMaterial({side:THREE.BackSide,depthWrite:false,fog:false,
+    uniforms:{top:{value:new THREE.Color(0x171b3b)},mid:{value:new THREE.Color(0x57425e)},horizon:{value:new THREE.Color(0xd08462)},ground:{value:new THREE.Color(0x4b3030)}},
+    vertexShader:'varying vec3 v;void main(){v=(modelMatrix*vec4(position,1.)).xyz;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',
+    fragmentShader:'uniform vec3 top,mid,horizon,ground;varying vec3 v;void main(){float h=normalize(v).y;vec3 c=mix(horizon,mid,smoothstep(0.,.45,h));c=mix(c,top,smoothstep(.42,.95,h));c=mix(ground,c,smoothstep(-.2,.03,h));gl_FragColor=vec4(c,1.);}'
+  });
+  const skyMesh = new THREE.Mesh(new THREE.SphereGeometry(900,32,16), mat);
+  skyMesh.name = 'Evening_Sky_Dome';
+  skyMesh.renderOrder = SKY_RENDER_ORDER;
+  scene.add(skyMesh);
+}
+
+function createHorizonBlend() {
+  // A curved haze band that softens the join between the marble plaza and Corniche panorama.
+  // This replaces the old flat haze plane so it does not look like a poster wall.
+  const geometry = new THREE.CylinderGeometry(
+    BACKDROP_RADIUS - 0.7,
+    BACKDROP_RADIUS - 0.7,
+    18,
+    96,
+    1,
+    true
+  );
+  const material = new THREE.MeshBasicMaterial({
+    color: 0xd79a6c,
+    transparent: true,
+    opacity: 0.18,
+    side: THREE.BackSide,
+    depthWrite: false,
+    fog: false,
+    toneMapped: false,
+    depthTest: false
+  });
+
+  const haze = new THREE.Mesh(geometry, material);
+  haze.position.set(0, 3.5, 0);
+  haze.rotation.y = BACKDROP_ROTATION_Y;
+  haze.name = 'Curved_Horizon_Haze';
+  haze.renderOrder = HAZE_RENDER_ORDER;
+  scene.add(haze);
+}
+
+function createCourtyardGround(){
+  // Procedural premium marble: warm pearl base, fine veins, and large square tiles.
+  const canvas=document.createElement('canvas');canvas.width=canvas.height=1024;
+  const c=canvas.getContext('2d');
+  const gradient=c.createLinearGradient(0,0,1024,1024);
+  gradient.addColorStop(0,'#e8dcc3');gradient.addColorStop(.5,'#d9c6a4');gradient.addColorStop(1,'#efe3cc');
+  c.fillStyle=gradient;c.fillRect(0,0,1024,1024);
+  c.lineCap='round';
+  for(let i=0;i<42;i++){
+    const y=(i*137)%1024;
+    c.beginPath();c.moveTo(-60,y);
+    c.bezierCurveTo(240,y-55,610,y+70,1080,y-18);
+    c.strokeStyle=i%3===0?'rgba(126,94,72,.12)':'rgba(255,255,255,.20)';
+    c.lineWidth=i%3===0?1.2:.7;c.stroke();
+  }
+  const tile=128;c.strokeStyle='rgba(112,83,60,.18)';c.lineWidth=3;
+  for(let p=0;p<=1024;p+=tile){c.beginPath();c.moveTo(p,0);c.lineTo(p,1024);c.stroke();c.beginPath();c.moveTo(0,p);c.lineTo(1024,p);c.stroke();}
+  const marble=new THREE.CanvasTexture(canvas);marble.colorSpace=THREE.SRGBColorSpace;
+  marble.wrapS=marble.wrapT=THREE.RepeatWrapping;marble.repeat.set(4,4);
+  marble.anisotropy=Math.min(8,renderer.capabilities.getMaxAnisotropy());
+
+  const plazaMaterial=new THREE.MeshStandardMaterial({map:marble,color:0xfff5df,roughness:.42,metalness:.02});
+  const ground=new THREE.Mesh(new THREE.PlaneGeometry(250,250),plazaMaterial);
+  ground.name='Premium_Marble_Plaza';ground.rotation.x=-Math.PI/2;ground.position.y=-.04;ground.receiveShadow=true;scene.add(ground);
+
+  // Clean ceremonial platform beneath the mosque.
+  const platformTexture=marble.clone();platformTexture.repeat.set(1.35,1.35);platformTexture.needsUpdate=true;
+  const platform=new THREE.Mesh(new THREE.CylinderGeometry(12.4,12.8,PLATFORM_TOP,64),new THREE.MeshStandardMaterial({map:platformTexture,color:0xffefd1,roughness:.34,metalness:.025}));
+  platform.name='Fanar_Ceremonial_Platform';platform.position.y=PLATFORM_TOP/2;platform.castShadow=true;platform.receiveShadow=true;scene.add(platform);
+  const trim=new THREE.Mesh(new THREE.TorusGeometry(12.55,.075,8,96),new THREE.MeshStandardMaterial({color:0xa46b2b,metalness:.55,roughness:.3}));
+  trim.rotation.x=Math.PI/2;trim.position.y=PLATFORM_TOP+.012;scene.add(trim);
+}
+
+function createCornicheBackdrop() {
+  const loader = new THREE.TextureLoader();
+
+  function makeFallbackTexture() {
+    // Procedural fallback so the scene still looks good even if the image path is wrong.
+    const canvas = document.createElement('canvas');
+    canvas.width = 4096;
+    canvas.height = 1024;
+    const ctx = canvas.getContext('2d');
+
+    const sky = ctx.createLinearGradient(0, 0, 0, canvas.height);
+    sky.addColorStop(0.00, '#6f2639');
+    sky.addColorStop(0.35, '#c65f45');
+    sky.addColorStop(0.62, '#e39a55');
+    sky.addColorStop(1.00, '#4a2430');
+    ctx.fillStyle = sky;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // sea strip
+    const sea = ctx.createLinearGradient(0, 650, 0, 940);
+    sea.addColorStop(0, 'rgba(60, 60, 90, 0.60)');
+    sea.addColorStop(1, 'rgba(30, 36, 62, 0.90)');
+    ctx.fillStyle = sea;
+    ctx.fillRect(0, 650, canvas.width, 290);
+
+    // soft skyline silhouettes across the horizon
+    const rng = (i) => {
+      const x = Math.sin(i * 91.345) * 10000;
+      return x - Math.floor(x);
+    };
+
+    ctx.fillStyle = 'rgba(52, 36, 58, 0.70)';
+    for (let i = 0; i < 80; i++) {
+      const w = 28 + rng(i) * 70;
+      const h = 80 + rng(i + 8) * 260;
+      const x = i * 56 + rng(i + 3) * 18;
+      const y = 650 - h;
+      ctx.fillRect(x, y, w, h);
+    }
+
+    // a few iconic soft shapes
+    ctx.beginPath();
+    ctx.arc(2450, 525, 110, Math.PI, 0);
+    ctx.fillStyle = 'rgba(52, 36, 58, 0.68)';
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.moveTo(3000, 650);
+    ctx.lineTo(3160, 420);
+    ctx.lineTo(3320, 650);
+    ctx.closePath();
+    ctx.fillStyle = 'rgba(52, 36, 58, 0.60)';
+    ctx.fill();
+
+    // horizon glow
+    const glow = ctx.createRadialGradient(1320, 605, 30, 1320, 605, 900);
+    glow.addColorStop(0, 'rgba(255, 210, 120, 0.45)');
+    glow.addColorStop(1, 'rgba(255, 210, 120, 0)');
+    ctx.fillStyle = glow;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.colorSpace = THREE.SRGBColorSpace;
+    texture.wrapS = THREE.RepeatWrapping;
+    texture.wrapT = THREE.ClampToEdgeWrapping;
+    texture.needsUpdate = true;
+    return texture;
+  }
+
+  function addBackdrop(texture, sourceLabel = 'image') {
+    texture.colorSpace = THREE.SRGBColorSpace;
+    texture.wrapS = THREE.RepeatWrapping;
+    texture.wrapT = THREE.ClampToEdgeWrapping;
+    texture.repeat.set(1, 1);
+    texture.offset.set(0, 0);
+
+    // Full 360-degree cylinder. No left/right poster edges while orbiting.
+    const geometry = new THREE.CylinderGeometry(
+      BACKDROP_RADIUS,
+      BACKDROP_RADIUS,
+      BACKDROP_HEIGHT,
+      128,
+      1,
+      true);
+
+    const material = new THREE.MeshBasicMaterial({
+      map: texture,
+      side: THREE.BackSide,
+      fog: false,
+      toneMapped: false,
+      depthWrite: false
+    });
+
+    const backdrop = new THREE.Mesh(geometry, material);
+    backdrop.name = 'Full_360_Corniche_Backdrop';
+    backdrop.position.set(0, BACKDROP_CENTER_Y, 0);
+    backdrop.rotation.y = BACKDROP_ROTATION_Y;
+    backdrop.renderOrder = BACKDROP_RENDER_ORDER;
+    scene.add(backdrop);
+
+    console.log(`Corniche backdrop loaded from ${sourceLabel}`);
+  }
+
+  function tryLoad(index = 0) {
+    if (index >= CORNICHE_IMAGE_URLS.length) {
+      console.warn('No Corniche image found. Using procedural fallback skyline.');
+      addBackdrop(makeFallbackTexture(), 'procedural fallback');
+      return;
+    }
+
+    const url = CORNICHE_IMAGE_URLS[index];
+    loader.load(
+      url,
+      (texture) => addBackdrop(texture, url),
+      undefined,
+      () => {
+        console.warn(`Could not load ${url}; trying next Corniche path...`);
+        tryLoad(index + 1);
+      }
+    );
+  }
+
+  tryLoad(0);
+}
+
+function createGrassPatches(){
+  const group=new THREE.Group();group.name='Minimal_Edge_Planters';
+  const stone=new THREE.MeshStandardMaterial({color:0xd8c7a8,roughness:.62});
+  const green=new THREE.MeshStandardMaterial({color:0x294b35,roughness:.95});
+  for(const [x,z] of [[-25,17],[25,17],[-28,-12],[28,-12]]){
+    const planter=new THREE.Mesh(new THREE.CylinderGeometry(2.05,2.18,.55,24),stone);planter.position.set(x,.275,z);planter.castShadow=true;planter.receiveShadow=true;group.add(planter);
+    const planting=new THREE.Mesh(new THREE.CylinderGeometry(1.76,1.76,.13,24),green);planting.position.set(x,.61,z);planting.receiveShadow=true;group.add(planting);
+  }scene.add(group);
+}
+
+function createEntranceHotspot(root){
+  const pos=HOTSPOT_FALLBACK_POSITION.clone(),marker=root.getObjectByName('Entrance_Hotspot_Position_Marker');if(marker)marker.getWorldPosition(pos);
+  entranceHotspot=new THREE.Group();entranceHotspot.position.copy(pos);entranceHotspot.userData={id:'enter_mosque',type:'transition',targetScene:'interior'};
+  const shared=entranceHotspot.userData;
+  const ring=new THREE.Mesh(new THREE.TorusGeometry(.42,.065,10,36),new THREE.MeshBasicMaterial({color:0xffb34c,transparent:true,opacity:.88,blending:THREE.AdditiveBlending,depthWrite:false}));ring.rotation.x=Math.PI/2;ring.userData=shared;entranceHotspot.add(ring);
+  const glow=new THREE.Mesh(new THREE.CircleGeometry(.58,32),new THREE.MeshBasicMaterial({color:0xff8a2b,transparent:true,opacity:.13,blending:THREE.AdditiveBlending,depthWrite:false}));glow.rotation.x=-Math.PI/2;glow.userData=shared;entranceHotspot.add(glow);
+  entranceHotspot.add(new THREE.PointLight(0xff932e,20,6,2));entranceHotspot.userData.ring=ring;entranceHotspot.userData.glow=glow;hotspotTargets.push(ring,glow);scene.add(entranceHotspot);
+}
+
+function createLighting(){
+  scene.add(new THREE.HemisphereLight(0x7784b8,0x5c3824,1.55));
+  const sun=new THREE.DirectionalLight(0xffb06a,4.2);sun.position.set(-24,32,18);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);sun.shadow.camera.left=-38;sun.shadow.camera.right=38;sun.shadow.camera.top=42;sun.shadow.camera.bottom=-26;sun.shadow.camera.far=110;scene.add(sun);
+  const rim=new THREE.DirectionalLight(0x4c5d9b,1.1);rim.position.set(20,18,-28);scene.add(rim);
+  for(const x of [-2,2]){const p=new THREE.PointLight(0xff8b32,32,10,2);p.position.set(x,2.7,5.4);scene.add(p);}
+}
+
+function frameCamera(box){
+  const size=box.getSize(new THREE.Vector3()),center=box.getCenter(new THREE.Vector3()),radius=Math.max(size.x,size.z,size.y*.72,16);
+  camera.position.copy(center).addScaledVector(CAMERA_DIRECTION,radius*1.52);
+  controls.target.set(center.x,box.min.y+size.y*.46,center.z);
+  controls.minDistance=Math.max(radius*.72,10);controls.maxDistance=Math.max(radius*2.8,60);
+  camera.near=Math.max(.1,radius*.01);camera.far=Math.max(500,radius*25);camera.updateProjectionMatrix();controls.update();
+}
+
+function animate(){
+  requestAnimationFrame(animate);const t=clock.getElapsedTime();
+  if(entranceHotspot){entranceHotspot.userData.ring.scale.setScalar(1+Math.sin(t*2.25)*.1);entranceHotspot.userData.glow.material.opacity=.1+(Math.sin(t*2.25)+1)*.035;}
+  controls.update();renderer.render(scene,camera);
+}
+
+function createPlaceholderTower(){
+  const g=new THREE.Group(),m=new THREE.MeshStandardMaterial({color:0xd5bd91,roughness:.8});
+  const b=new THREE.Mesh(new THREE.CylinderGeometry(5.5,6.4,6,24),m);b.position.y=3;g.add(b);
+  const t=new THREE.Mesh(new THREE.CylinderGeometry(2,2.7,18,20),m);t.position.y=12;g.add(t);
+  const cap=new THREE.Mesh(new THREE.ConeGeometry(1.8,2.6,20),m);cap.position.y=22.3;g.add(cap);return g;
+}
+
+function updatePointer(e){const r=renderer.domElement.getBoundingClientRect();pointer.x=(e.clientX-r.left)/r.width*2-1;pointer.y=-(e.clientY-r.top)/r.height*2+1;}
+function onPointerMove(e){updatePointer(e);raycaster.setFromCamera(pointer,camera);renderer.domElement.style.cursor=raycaster.intersectObjects(hotspotTargets,false).length?'pointer':'grab';}
+function onPointerDown(e){updatePointer(e);raycaster.setFromCamera(pointer,camera);const h=raycaster.intersectObjects(hotspotTargets,false);if(h.length&&h[0].object.userData.id==='enter_mosque')console.log('Enter mosque clicked');}
+function onResize(){camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.setSize(innerWidth,innerHeight);}
+</script>
+</body>
+</html>
