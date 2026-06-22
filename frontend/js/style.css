@@ -1,0 +1,220 @@
+/* ── Reset ─────────────────────────────────────────────────────────────────── */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: #0d0b08;
+  color: #f0e6d0;
+  font-family: 'Segoe UI', Arial, sans-serif;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  padding: 24px;
+}
+
+h1 {
+  font-size: 18px;
+  color: #F5C85A;
+  letter-spacing: 0.04em;
+  text-align: center;
+}
+
+/* ── Conversation log ────────────────────────────────────────────────────────── */
+#log {
+  width: 100%;
+  max-width: 640px;
+  height: 340px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.09);
+  border-radius: 12px;
+  padding: 16px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.msg {
+  max-width: 80%;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 14px;
+  line-height: 1.6;
+}
+.msg.user {
+  background: rgba(245,200,90,0.12);
+  border: 1px solid rgba(245,200,90,0.25);
+  align-self: flex-end;
+  text-align: right;
+}
+.msg.maryam {
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.1);
+  align-self: flex-start;
+  text-align: right;
+}
+.msg .sender {
+  font-size: 11px;
+  font-weight: 600;
+  margin-bottom: 4px;
+  opacity: 0.55;
+  letter-spacing: 0.04em;
+}
+.msg.user .sender   { color: #F5C85A; }
+.msg.maryam .sender { color: #aad4ff; }
+
+/* ── Tools log ───────────────────────────────────────────────────────────────── */
+#tools-log {
+  width: 100%;
+  max-width: 640px;
+  background: rgba(0,0,0,0.3);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 11px;
+  color: rgba(255,255,255,0.35);
+  font-family: monospace;
+  min-height: 36px;
+  letter-spacing: 0.02em;
+}
+#tools-log span { color: #F5C85A; }
+
+/* ── Controls ────────────────────────────────────────────────────────────────── */
+#controls {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  width: 100%;
+  max-width: 640px;
+}
+
+#text-input {
+  flex: 1;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 8px;
+  padding: 10px 14px;
+  color: #f0e6d0;
+  font-size: 14px;
+  direction: rtl;
+  outline: none;
+}
+#text-input:focus       { border-color: rgba(245,200,90,0.4); }
+#text-input::placeholder { color: rgba(255,255,255,0.25); }
+
+button {
+  padding: 10px 16px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+
+#send-btn          { background: #B47A2E; color: #fff; }
+#send-btn:hover    { background: #c98c38; }
+#send-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+#mic-btn        { background: rgba(255,255,255,0.08); color: #f0e6d0; border: 1px solid rgba(255,255,255,0.15); font-size: 18px; padding: 10px 14px; }
+#mic-btn:hover  { background: rgba(255,255,255,0.14); }
+#mic-btn.active { background: rgba(220,60,60,0.3); border-color: rgba(220,60,60,0.5); }
+
+/* ── Status ──────────────────────────────────────────────────────────────────── */
+#status           { font-size: 12px; color: rgba(255,255,255,0.3); text-align: center; }
+#status.listening { color: #e07070; }
+#status.thinking  { color: #F5C85A; }
+#status.speaking  { color: #70c8a0; }
+
+/* ── Audio indicator ─────────────────────────────────────────────────────────── */
+#audio-indicator {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: #70c8a0;
+  display: none;
+  animation: pulse 1s infinite;
+}
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+/* ── Config panel ────────────────────────────────────────────────────────────── */
+#config {
+  width: 100%;
+  max-width: 640px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+#config label {
+  font-size: 11px;
+  color: rgba(255,255,255,0.3);
+  white-space: nowrap;
+}
+#config input {
+  flex: 1;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 6px;
+  padding: 6px 10px;
+  color: #f0e6d0;
+  font-size: 12px;
+  outline: none;
+}
+#tts-toggle     { font-size: 11px; padding: 6px 12px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.5); }
+#tts-toggle.on  { background: rgba(112,200,160,0.15); border-color: rgba(112,200,160,0.4); color: #70c8a0; }
+
+/* ── Cinematic overlays ──────────────────────────────────────────────────────── */
+
+/* Black fade — sits on top of everything */
+#fade-overlay {
+  position: fixed;
+  inset: 0;
+  background: black;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 100;
+  transition: opacity 0.5s ease;
+}
+
+/* Exterior establishing shot panel */
+#exterior-panel {
+  position: fixed;
+  inset: 0;
+  background: #000;
+  display: none;           /* shown by transition.js */
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 99;
+  gap: 20px;
+  padding: 40px;
+  opacity: 0;
+  transition: opacity 0.6s ease;
+}
+
+#exterior-img {
+  max-width: 80%;
+  max-height: 55vh;
+  border-radius: 12px;
+  object-fit: cover;
+  box-shadow: 0 0 60px rgba(245,200,90,0.15);
+}
+
+#exterior-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: #F5C85A;
+  text-align: center;
+}
+
+#exterior-subtitle {
+  font-size: 16px;
+  color: rgba(255,255,255,0.5);
+  text-align: center;
+  letter-spacing: 0.06em;
+}
+
+/* ── Utility ─────────────────────────────────────────────────────────────────── */
+.hidden { display: none !important; }

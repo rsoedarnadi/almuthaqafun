@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Al Muthaqafun · المثقفون</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- Three.js renders here -->
+  <canvas id="scene-canvas"></canvas>
+
+  <!-- Cinematic overlays -->
+  <div id="fade-overlay"></div>
+  <div id="exterior-panel">
+    <img id="exterior-img" />
+    <div id="exterior-title"></div>
+    <div id="exterior-subtitle"></div>
+  </div>
+
+  <!-- Game UI -->
+  <div id="dialogue-box">
+    <div id="dialogue-speaker"></div>
+    <div id="dialogue-text"></div>
+  </div>
+
+  <div id="map-panel"       class="ui-panel hidden"></div>
+  <div id="inventory-panel" class="ui-panel hidden"></div>
+  <div id="badge-panel"     class="ui-panel hidden"></div>
+
+  <!-- Voice input -->
+  <button id="mic-btn">🎙</button>
+  <input  id="text-input" type="text" placeholder="اسأل مريم…" />
+  <button id="send-btn">إرسال</button>
+
+  <!-- Status -->
+  <div id="status-bar"></div>
+
+  <!-- Load JS modules in dependency order -->
+  <script type="module" src="js/main.js"></script>
+
+</body>
+</html>

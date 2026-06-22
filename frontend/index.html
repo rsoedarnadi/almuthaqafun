@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Al Muthaqafun — مريم</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <h1>🕌 Al Muthaqafun · المثقفون</h1>
+
+  <!-- Config -->
+  <div id="config">
+    <label>Agent URL</label>
+    <input id="agent-url" value="http://localhost:8000" />
+    <label>TTS URL</label>
+    <input id="tts-url" value="http://localhost:8000/tts" />
+    <button id="tts-toggle" class="on">TTS ON</button>
+  </div>
+
+  <!-- Conversation log -->
+  <div id="log"></div>
+
+  <!-- Tool calls log -->
+  <div id="tools-log">Tool calls will appear here…</div>
+
+  <!-- Controls -->
+  <div id="controls">
+    <button id="mic-btn" title="اضغط للتحدث">🎙</button>
+    <input id="text-input" type="text"
+           placeholder="اكتب رسالتك هنا أو اضغط على المايكروفون…" />
+    <button id="send-btn">إرسال</button>
+  </div>
+
+  <!-- Status -->
+  <div style="display:flex;align-items:center;gap:8px">
+    <div id="audio-indicator"></div>
+    <div id="status">جاهز · Ready</div>
+  </div>
+
+  <!-- Cinematic overlays (hidden until transition fires) -->
+  <div id="fade-overlay"></div>
+  <div id="exterior-panel">
+    <img id="exterior-img" alt="" />
+    <div id="exterior-title"></div>
+    <div id="exterior-subtitle"></div>
+  </div>
+
+  <!-- JS modules — load order matters -->
+  <script type="module" src="js/main.js"></script>
+
+</body>
+</html>
