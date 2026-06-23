@@ -25,7 +25,7 @@ pip install fastapi uvicorn pydantic requests python-dotenv
 3. Create .env file at root folder to define environment variables
 ```
 FANAR_API_KEY=Your_API_Key
-FANAR_BASE_URL=https://api.fanar.qa/v1
+FANAR_BASE_URL=https://api.fanar.qa
 FANAR_MODEL=Fanar-C-2-27B
 ```
 3. Start local server
