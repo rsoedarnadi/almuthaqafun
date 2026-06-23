@@ -5,7 +5,7 @@ Fanar Hackathon 2026 Project. An agentic AI framework for Qatari and Islamic her
 1. Set up the virtual environment
 ```
 # Navigate to the repository directory
-cd al-muthaqafun-core
+cd almuthaqafun
 
 # Create a virtual environment named 'venv'
 python3 -m venv venv
