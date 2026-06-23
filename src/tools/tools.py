@@ -66,13 +66,13 @@ TOOLS = [
         "type": "function",
         "function": {
             "name": "trigger_animation",
-            "description": "Play a named animation on Maryam",
+            "description": "Play a named animation on the scene and chatacter models.",
             "parameters": {
                 "type": "object",
                 "properties": {
                     "animation": {
                         "type": "string",
-                        "enum": ["idle", "wave", "point", "bow", "offer_coffee", "drink_coffee", "laugh", "gesture_follow"]
+                        "enum": ["idle", "wave", "point", "bow", "offer_coffee", "drink_coffee", "laugh", "gesture_follow", "bakhoor_smoke"]
                     }
                 },
                 "required": ["animation"]
@@ -89,7 +89,7 @@ TOOLS = [
                 "properties": {
                     "scene_id": {
                         "type": "string",
-                        "enum": ["majlis", "souq", "zubarah", "masjid"]
+                        "enum": ["majlis", "masjid", "zubarah"]
                     },
                     "transition_line": {"type": "string", "description": "What Maryam says as the scene fades out"}
                 },

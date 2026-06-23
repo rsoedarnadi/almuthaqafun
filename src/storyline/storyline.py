@@ -10,20 +10,15 @@ class StoryPhase(Enum):
     MAJLIS_EXPLORE       = "majlis_explore"         # Player explores majlis objects
     MAJLIS_COMPLETE      = "majlis_complete"        # Badge awarded, tour offer made
 
-    # Souq scene
-    SOUQ_ARRIVAL         = "souq_arrival"           # Maryam introduces the souq
-    SOUQ_EXPLORE         = "souq_explore"
-    SOUQ_COMPLETE        = "souq_complete"
+    # Mosque scene
+    MASJID_ARRIVAL       = "masjid_arrival"
+    MASJID_EXPLORE       = "masjid_explore"
+    MASJID_COMPLETE      = "masjid_complete"
 
     # Fort scene
     ZUBARAH_ARRIVAL      = "zubarah_arrival"
     ZUBARAH_EXPLORE      = "zubarah_explore"
     ZUBARAH_COMPLETE     = "zubarah_complete"
-
-    # Mosque scene
-    MASJID_ARRIVAL       = "masjid_arrival"
-    MASJID_EXPLORE       = "masjid_explore"
-    MASJID_COMPLETE      = "masjid_complete"
 
     JOURNEY_COMPLETE     = "journey_complete"       # All scenes done
 
@@ -34,7 +29,7 @@ SCENE_REQUIREMENTS = {
         "required_objects":   ["dallah", "sadu_carpet", "bakhoor", "cushion"],
         "required_questions":  1,
         "badge_title":         "ضيف المجلس · Guest of the Majlis",
-        "next_phase":          StoryPhase.SOUQ_ARRIVAL
+        "next_phase":          StoryPhase.MASJID_ARRIVAL
     },
     "souq": {
         "required_objects":   ["spice_stall", "lantern", "falcon_shop", "textile"],
