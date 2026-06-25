@@ -72,7 +72,7 @@ TOOLS = [
                 "properties": {
                     "animation": {
                         "type": "string",
-                        "enum": ["idle", "wave", "point", "bow", "offer_coffee", "drink_coffee", "laugh", "gesture_follow", "bakhoor_smoke"]
+                        "enum": ["idle", "wave", "point", "offer_coffee", "drink_coffee", "laugh", "gesture_follow", "bakhoor_smoke"]
                     }
                 },
                 "required": ["animation"]

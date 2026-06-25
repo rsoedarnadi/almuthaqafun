@@ -155,7 +155,7 @@ TOOL CALLING RULES — follow these exactly:
 9. TRIGGER ANIMATION
    Trigger: follow PHASE INSTRUCTIONS — always pair with other tools as described
    Tool: trigger_animation
-   Args: animation — one of: idle, wave, point, bow, offer_coffee,
+   Args: animation — one of: idle, wave, point, offer_coffee,
                               drink_coffee, laugh, gesture_follow
 
 10. PLAIN TEXT — no tools needed
