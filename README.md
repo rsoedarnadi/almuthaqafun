@@ -5,7 +5,7 @@ Fanar Hackathon 2026 Project. An agentic AI framework for Qatari and Islamic her
 1. Set up the virtual environment
 ```
 # Navigate to the repository directory
-cd al-muthaqafun-core
+cd almuthaqafun
 
 # Create a virtual environment named 'venv'
 python3 -m venv venv
@@ -25,7 +25,7 @@ pip install fastapi uvicorn pydantic requests python-dotenv
 3. Create .env file at root folder to define environment variables
 ```
 FANAR_API_KEY=Your_API_Key
-FANAR_BASE_URL=https://api.fanar.qa/v1
+FANAR_BASE_URL=https://api.fanar.qa
 FANAR_MODEL=Fanar-C-2-27B
 ```
 3. Start local server
