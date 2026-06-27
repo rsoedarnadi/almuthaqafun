@@ -2,11 +2,21 @@
 # Real API tests — run with: PYTHONPATH=. python tests/test_agent.py
 
 from dotenv import load_dotenv
+
 load_dotenv()
 
+import os
 import asyncio
+import traceback
+
 from src.storyline.storyline import GameState, StoryPhase, SCENE_REQUIREMENTS
 from src.agent import run_turn
+
+print("\n========== FANAR CONFIG ==========")
+print("MODEL:", os.getenv("FANAR_MODEL"))
+print("BASE_URL:", os.getenv("FANAR_BASE_URL"))
+print("API_KEY EXISTS:", bool(os.getenv("FANAR_API_KEY")))
+print("=================================\n")
 
 # ── helpers ───────────────────────────────────────────────────────────────────
 
@@ -34,6 +44,24 @@ def print_result(result: dict, state: GameState, extras: list = None):
 
 
 # ── tests ─────────────────────────────────────────────────────────────────────
+async def test_connection():
+    print("\n── Connection Test ──")
+
+    state = GameState()
+
+    result = await run_turn(
+        "Hello",
+        [],
+        state,
+    )
+
+    print("Reply:")
+    print(result["reply"])
+
+    print("Tools:")
+    print(result["tool_calls_executed"])
+
+    print("✓ Connection works")
 
 async def test_1_transition_scene():
     """
@@ -291,8 +319,9 @@ async def main():
         except AssertionError as e:
             print(f"  ✗ FAILED: {e}")
             failed.append(test.__name__)
-        except Exception as e:
-            print(f"  ✗ ERROR: {type(e).__name__}: {e}")
+        except Exception:
+            print(f"\n❌ ERROR in {test.__name__}")
+            traceback.print_exc()
             failed.append(test.__name__)
 
     print(f"\n{'═'*50}")

@@ -1,5 +1,6 @@
-# tools.py
+# src/tools/tools.py
 from src.storyline.storyline import GameState, StoryPhase, SCENE_REQUIREMENTS
+
 TOOLS = [
     {
         "type": "function",
@@ -20,7 +21,7 @@ TOOLS = [
         "type": "function",
         "function": {
             "name": "give_directions",
-            "description": "Give spoken directions to a location and optionally highlight it on the map",
+            "description": "Give spoken directions to an object's location and optionally highlight it on the map",
             "parameters": {
                 "type": "object",
                 "properties": {
@@ -72,7 +73,7 @@ TOOLS = [
                 "properties": {
                     "animation": {
                         "type": "string",
-                        "enum": ["idle", "wave", "point", "offer_coffee", "drink_coffee", "laugh", "gesture_follow", "bakhoor_smoke"]
+                        "enum": ["idle", "wave", "point", "offer_coffee", "drink_coffee", "laugh", "gesture_follow", "bakhoor_smoke", "bow", "nod"]
                     }
                 },
                 "required": ["animation"]
@@ -89,7 +90,7 @@ TOOLS = [
                 "properties": {
                     "scene_id": {
                         "type": "string",
-                        "enum": ["majlis", "masjid", "zubarah"]
+                        "enum": ["majlis_ext", "majlis", "masjid_ext", "masjid", "zubarah"]
                     },
                     "transition_line": {"type": "string", "description": "What Maryam says as the scene fades out"}
                 },
@@ -104,8 +105,14 @@ def dispatch_tool(tool_name: str, args: dict, state: "GameState") -> str:
     """Executes tool logic server-side and returns result string for Fanar."""
 
     if tool_name == "explore_object":
-        state.object_explored(args["object_id"])
-        return f"Object '{args['object_id']}' marked as explored. Progress: {len(state.explored_objects)}/{len(SCENE_REQUIREMENTS.get(state.current_scene, {}).get('required_objects', []))}"
+        required_objs = SCENE_REQUIREMENTS.get(state.current_scene, {}).get("required_objects") or []
+        if not required_objs:
+            return f"Scene '{state.current_scene}' has no explorable objects. Ignored explore_object."
+        obj_id = args.get("object_id")
+        if obj_id not in required_objs:
+            return f"Object '{obj_id}' is not explorable in scene '{state.current_scene}'."
+        state.object_explored(obj_id)
+        return f"Object '{obj_id}' marked as explored. Progress: {len(state.explored_objects)}/{len(required_objs)}"
 
     elif tool_name == "give_directions":
         return f"Directions given to {args['destination']}."
@@ -115,17 +122,36 @@ def dispatch_tool(tool_name: str, args: dict, state: "GameState") -> str:
 
     elif tool_name == "award_badge":
         if state.scene_completable():
+            badge_title = args.get("badge_title") or SCENE_REQUIREMENTS.get(state.current_scene, {}).get("badge_title")
             state.complete_scene()
-            return f"Badge '{args['badge_title']}' awarded. Scene complete."
+            if badge_title:
+                return f"Badge '{badge_title}' awarded. Scene complete."
+            return "Scene complete. No badge is awarded for this transition scene."
         else:
-            return "Scene not yet completable — player hasn't explored all required objects."
+            return "Scene not yet completable — player hasn't met exploration/question criteria."
 
     elif tool_name == "trigger_animation":
         return f"Animation '{args['animation']}' triggered."
 
     elif tool_name == "transition_scene":
-        state.current_scene  = args["scene_id"]
-        state.current_phase  = StoryPhase[f"{args['scene_id'].upper()}_ARRIVAL"]
-        return f"Transitioning to scene '{args['scene_id']}'."
+        scene_id = args["scene_id"]
+
+
+        state.current_scene = scene_id
+        state.explored_objects = []
+        state.questions_asked = 0
+
+        # Explicit scene -> phase mapping. Do not build enum names dynamically:
+        # "masjid" should enter MASJID_ENTER, not fall through to JOURNEY_COMPLETE.
+        scene_to_phase = {
+            "majlis_ext": StoryPhase.MAJLIS_INTRO,
+            "majlis": StoryPhase.MAJLIS_ENTER,
+            "masjid_ext": StoryPhase.MASJID_ARRIVAL,
+            "masjid": StoryPhase.MASJID_ENTER,
+            "zubarah": StoryPhase.ZUBARAH_ARRIVAL,
+        }
+        state.current_phase = scene_to_phase.get(scene_id, StoryPhase.JOURNEY_COMPLETE)
+
+        return f"Transitioning to scene '{scene_id}'. Mapped to phase: {state.current_phase.value}"
 
     return f"Unknown tool: {tool_name}"

@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Al Muthaqafun — مريم</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #0d0b08;
+      color: #f0e6d0;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      padding: 24px;
+    }
+
+    h1 {
+      font-size: 18px;
+      color: #F5C85A;
+      letter-spacing: 0.04em;
+      text-align: center;
+    }
+
+    /* ── Conversation log ── */
+    #log {
+      width: 100%;
+      max-width: 640px;
+      height: 340px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.09);
+      border-radius: 12px;
+      padding: 16px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .msg {
+      max-width: 80%;
+      padding: 10px 14px;
+      border-radius: 10px;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+    .msg.user {
+      background: rgba(245,200,90,0.12);
+      border: 1px solid rgba(245,200,90,0.25);
+      align-self: flex-end;
+      text-align: right;
+    }
+    .msg.maryam {
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.1);
+      align-self: flex-start;
+      text-align: right;
+    }
+    .msg .sender {
+      font-size: 11px;
+      font-weight: 600;
+      margin-bottom: 4px;
+      opacity: 0.55;
+      letter-spacing: 0.04em;
+    }
+    .msg.user .sender  { color: #F5C85A; }
+    .msg.maryam .sender { color: #aad4ff; }
+
+    /* ── Tools log ── */
+    #tools-log {
+      width: 100%;
+      max-width: 640px;
+      background: rgba(0,0,0,0.3);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 11px;
+      color: rgba(255,255,255,0.35);
+      font-family: monospace;
+      min-height: 36px;
+      letter-spacing: 0.02em;
+    }
+    #tools-log span { color: #F5C85A; }
+
+    /* ── Controls ── */
+    #controls {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      width: 100%;
+      max-width: 640px;
+    }
+
+    #text-input {
+      flex: 1;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 8px;
+      padding: 10px 14px;
+      color: #f0e6d0;
+      font-size: 14px;
+      direction: rtl;
+      outline: none;
+    }
+    #text-input:focus { border-color: rgba(245,200,90,0.4); }
+    #text-input::placeholder { color: rgba(255,255,255,0.25); }
+
+    button {
+      padding: 10px 16px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+
+    #send-btn {
+      background: #B47A2E;
+      color: #fff;
+    }
+    #send-btn:hover { background: #c98c38; }
+    #send-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    #mic-btn {
+      background: rgba(255,255,255,0.08);
+      color: #f0e6d0;
+      border: 1px solid rgba(255,255,255,0.15);
+      font-size: 18px;
+      padding: 10px 14px;
+    }
+    #mic-btn:hover  { background: rgba(255,255,255,0.14); }
+    #mic-btn.active { background: rgba(220,60,60,0.3); border-color: rgba(220,60,60,0.5); }
+
+    /* ── Status ── */
+    #status {
+      font-size: 12px;
+      color: rgba(255,255,255,0.3);
+      text-align: center;
+    }
+    #status.listening { color: #e07070; }
+    #status.thinking  { color: #F5C85A; }
+    #status.speaking  { color: #70c8a0; }
+
+    /* ── Audio indicator ── */
+    #audio-indicator {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: #70c8a0;
+      display: none;
+      animation: pulse 1s infinite;
+    }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+    /* ── Config panel ── */
+    #config {
+      width: 100%;
+      max-width: 640px;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    #config label { font-size: 11px; color: rgba(255,255,255,0.3); white-space: nowrap; }
+    #config input {
+      flex: 1;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 6px;
+      padding: 6px 10px;
+      color: #f0e6d0;
+      font-size: 12px;
+      outline: none;
+    }
+    #tts-toggle {
+      font-size: 11px;
+      padding: 6px 12px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: rgba(255,255,255,0.5);
+    }
+    #tts-toggle.on { background: rgba(112,200,160,0.15); border-color: rgba(112,200,160,0.4); color: #70c8a0; }
+  </style>
+</head>
+<body>
+
+  <h1>🕌 Al Muthaqafun · المثقفون</h1>
+
+  <!-- Config -->
+  <div id="config">
+    <label>Agent URL</label>
+    <input id="agent-url" value="http://localhost:8000" />
+    <label>TTS URL</label>
+    <input id="tts-url" value="http://localhost:8000/tts" />
+    <button id="tts-toggle" class="on" onclick="toggleTTS()">TTS ON</button>
+  </div>
+
+  <!-- Conversation log -->
+  <div id="log"></div>
+
+  <!-- Tool calls log -->
+  <div id="tools-log">Tool calls will appear here…</div>
+
+  <!-- Controls -->
+  <div id="controls">
+    <button id="mic-btn" onclick="toggleMic()" title="Hold to speak">🎙</button>
+    <input id="text-input" type="text" placeholder="اكتب رسالتك هنا أو اضغط على المايكروفون…" />
+    <button id="send-btn" onclick="sendMessage()">إرسال</button>
+  </div>
+
+  <!-- Status -->
+  <div style="display:flex;align-items:center;gap:8px">
+    <div id="audio-indicator"></div>
+    <div id="status">جاهز · Ready</div>
+  </div>
+
+<script>
+// ── State ─────────────────────────────────────────────────────────────────────
+const SESSION_ID  = "player_" + Math.random().toString(36).slice(2, 8);
+let history       = [];
+let ttsEnabled    = true;
+let isRecording   = false;
+let mediaRecorder = null;
+let audioChunks   = [];
+let currentAudio  = null;
+
+// ── UI helpers ────────────────────────────────────────────────────────────────
+function setStatus(text, cls = "") {
+  const el = document.getElementById("status");
+  el.textContent   = text;
+  el.className     = cls;
+}
+
+function setLoading(on) {
+  document.getElementById("send-btn").disabled = on;
+  document.getElementById("text-input").disabled = on;
+}
+
+function toggleTTS() {
+  ttsEnabled = !ttsEnabled;
+  const btn  = document.getElementById("tts-toggle");
+  btn.textContent = ttsEnabled ? "TTS ON" : "TTS OFF";
+  btn.className   = ttsEnabled ? "on" : "";
+}
+
+function appendMessage(role, text) {
+  const log    = document.getElementById("log");
+  const div    = document.createElement("div");
+  div.className = `msg ${role}`;
+  div.innerHTML = `
+    <div class="sender">${role === "user" ? "أنت · You" : "مريم · Maryam"}</div>
+    <div>${text}</div>
+  `;
+  log.appendChild(div);
+  log.scrollTop = log.scrollHeight;
+}
+
+function showTools(tools) {
+  const el = document.getElementById("tools-log");
+  if (!tools || tools.length === 0) {
+    el.innerHTML = "<span style='opacity:0.3'>No tools called</span>";
+    return;
+  }
+  el.innerHTML = tools.map(t =>
+    `<span>${t.name}</span>(${JSON.stringify(t.args)})`
+  ).join("  ·  ");
+}
+
+// ── Send text message to agent ────────────────────────────────────────────────
+async function sendMessage(overrideText = null) {
+  const input   = document.getElementById("text-input");
+  const message = overrideText ?? input.value.trim();
+  if (!message) return;
+
+  input.value = "";
+  appendMessage("user", message);
+  setLoading(true);
+  setStatus("مريم تفكر… · Thinking…", "thinking");
+
+  try {
+    const agentUrl = document.getElementById("agent-url").value.trim();
+
+    const res = await fetch(`${agentUrl}/turn`, {
+      method:  "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        session_id:   SESSION_ID,
+        user_message: message,
+        history:      history,
+        game_state:   {}          // backend manages state via session_id
+      })
+    });
+
+    if (!res.ok) throw new Error(`Agent error: ${res.status}`);
+
+    const data = await res.json();
+
+    // Update local history
+    history = data.updated_history ?? history;
+
+    // Show reply and tools
+    appendMessage("maryam", data.reply);
+    showTools(data.tool_calls_executed);
+
+    // Handle tool calls on the frontend
+    handleToolCalls(data.tool_calls_executed ?? []);
+
+    // TTS
+    if (ttsEnabled && data.reply) {
+      await speakReply(data.reply);
+    } else {
+      setStatus("جاهز · Ready");
+    }
+
+  } catch (err) {
+    appendMessage("maryam", `⚠️ خطأ في الاتصال · Connection error: ${err.message}`);
+    setStatus("خطأ · Error");
+    console.error(err);
+  } finally {
+    setLoading(false);
+  }
+}
+
+// ── TTS — call your backend TTS endpoint ─────────────────────────────────────
+async function speakReply(text) {
+  setStatus("مريم تتكلم… · Speaking…", "speaking");
+  document.getElementById("audio-indicator").style.display = "block";
+
+  // Stop any currently playing audio
+  if (currentAudio) {
+    currentAudio.pause();
+    currentAudio = null;
+  }
+
+  try {
+    const ttsUrl = document.getElementById("tts-url").value.trim();
+
+    const res = await fetch(ttsUrl, {
+      method:  "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text })
+    });
+
+    if (!res.ok) throw new Error(`TTS error: ${res.status}`);
+
+    const blob = await res.blob();
+    const url  = URL.createObjectURL(blob);
+    currentAudio = new Audio(url);
+
+    currentAudio.onended = () => {
+      setStatus("جاهز · Ready");
+      document.getElementById("audio-indicator").style.display = "none";
+      URL.revokeObjectURL(url);
+    };
+
+    await currentAudio.play();
+
+  } catch (err) {
+    // TTS failed — don't crash the whole flow
+    console.warn("TTS failed:", err.message);
+    setStatus("جاهز (TTS unavailable) · Ready");
+    document.getElementById("audio-indicator").style.display = "none";
+  }
+}
+
+// ── STT — browser Web Speech API ─────────────────────────────────────────────
+let recognition = null;
+
+function initSpeechRecognition() {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognition) {
+    alert("Speech recognition not supported in this browser. Use Chrome.");
+    return false;
+  }
+
+  recognition = new SpeechRecognition();
+  recognition.continuous    = false;
+  recognition.interimResults = true;
+  recognition.lang          = "ar-QA";   // Qatari Arabic — falls back to ar
+
+  recognition.onstart = () => {
+    setStatus("جارٍ الاستماع… · Listening…", "listening");
+    document.getElementById("mic-btn").classList.add("active");
+  };
+
+  recognition.onresult = (e) => {
+    const transcript = Array.from(e.results)
+      .map(r => r[0].transcript)
+      .join("");
+    document.getElementById("text-input").value = transcript;
+
+    // If final result, send automatically
+    if (e.results[e.results.length - 1].isFinal) {
+      recognition.stop();
+    }
+  };
+
+  recognition.onend = () => {
+    document.getElementById("mic-btn").classList.remove("active");
+    isRecording = false;
+    const transcript = document.getElementById("text-input").value.trim();
+    if (transcript) {
+      setStatus("جاهز · Ready");
+      sendMessage();   // auto-send after speech ends
+    } else {
+      setStatus("لم يتم التعرف على الكلام · No speech detected");
+    }
+  };
+
+  recognition.onerror = (e) => {
+    console.error("STT error:", e.error);
+    setStatus(`خطأ في التعرف على الكلام · STT error: ${e.error}`);
+    document.getElementById("mic-btn").classList.remove("active");
+    isRecording = false;
+  };
+
+  return true;
+}
+
+function toggleMic() {
+  if (!recognition && !initSpeechRecognition()) return;
+
+  if (isRecording) {
+    recognition.stop();
+    isRecording = false;
+  } else {
+    isRecording = true;
+    recognition.start();
+  }
+}
+
+// ── Handle tool calls on the frontend ────────────────────────────────────────
+// This is where you'll hook into Three.js / Unity WebGL later.
+// For now it just logs to console and shows a visual indicator.
+function handleToolCalls(tools) {
+  tools.forEach(tool => {
+    console.log(`[TOOL] ${tool.name}`, tool.args);
+
+    switch (tool.name) {
+      case "transition_scene":
+        console.log(`→ Load scene: ${tool.args.scene_id}`);
+        // TODO: trigger Three.js scene switch
+        break;
+
+      case "trigger_animation":
+        console.log(`→ Play animation: ${tool.args.animation}`);
+        // TODO: trigger NPC animation
+        break;
+
+      case "open_ui":
+        console.log(`→ Open UI panel: ${tool.args.panel}`);
+        // TODO: show UI overlay
+        break;
+
+      case "award_badge":
+        console.log(`→ Award badge: ${tool.args.badge_title}`);
+        // TODO: show badge UI
+        break;
+
+      case "explore_object":
+        console.log(`→ Highlight object: ${tool.args.object_id}`);
+        // TODO: highlight object in scene
+        break;
+
+      case "give_directions":
+        console.log(`→ Show waypoint to: ${tool.args.destination}`);
+        // TODO: show direction arrow
+        break;
+
+      default:
+        console.log(`→ Unknown tool: ${tool.name}`);
+    }
+  });
+}
+
+// ── Keyboard shortcut — Enter to send ────────────────────────────────────────
+document.getElementById("text-input").addEventListener("keydown", e => {
+  if (e.key === "Enter" && !e.shiftKey) {
+    e.preventDefault();
+    sendMessage();
+  }
+});
+
+// ── Boot message ──────────────────────────────────────────────────────────────
+window.addEventListener("DOMContentLoaded", () => {
+  appendMessage("maryam", "مرحباً! أنا مريم. اكتب أو تكلم لتبدأ الرحلة. · Hello! I am Maryam. Type or speak to begin your journey.");
+  setStatus(`Session: ${SESSION_ID}`);
+});
+</script>
+</body>
+</html>
