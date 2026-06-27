@@ -8,9 +8,10 @@ load_dotenv()
 import os
 import asyncio
 import traceback
+from time import perf_counter
 
 from src.storyline.storyline import GameState, StoryPhase, SCENE_REQUIREMENTS
-from src.agent import run_turn
+from src.agent import parse_response, run_turn
 
 print("\n========== FANAR CONFIG ==========")
 print("MODEL:", os.getenv("FANAR_MODEL"))
@@ -23,12 +24,14 @@ print("=================================\n")
 def fresh_majlis_explore() -> GameState:
     """A clean state sitting in the majlis explore phase."""
     state = GameState()
+    state.current_scene = "majlis"
     state.current_phase = StoryPhase.MAJLIS_EXPLORE
     return state
 
 def completed_majlis() -> GameState:
     """A state where all majlis requirements are met — badge should fire."""
     state = GameState()
+    state.current_scene = "majlis"
     state.current_phase = StoryPhase.MAJLIS_EXPLORE
     for obj in SCENE_REQUIREMENTS["majlis"]["required_objects"]:
         state.object_explored(obj)
@@ -38,18 +41,51 @@ def completed_majlis() -> GameState:
 def print_result(result: dict, state: GameState, extras: list = None):
     print(f"  Reply: {result['reply']}")
     print(f"  Tools: {result['tool_calls_executed']}")
+    if "latency_seconds" in result:
+        print(f"  Agent latency: {result['latency_seconds']:.2f}s")
     if extras:
         for label, value in extras:
             print(f"  {label}: {value}")
 
 
+async def timed_run_turn(user_message: str, history: list, state: GameState) -> dict:
+    """Run one agent turn and annotate the result with elapsed wall time."""
+    start = perf_counter()
+    result = await run_turn(user_message, history, state)
+    result["latency_seconds"] = perf_counter() - start
+    return result
+
+
 # ── tests ─────────────────────────────────────────────────────────────────────
+async def test_0_parse_embedded_json_tool_array():
+    """
+    Fanar sometimes appends a valid JSON tools array after normal prose.
+    The parser should keep the prose as the reply and still extract tools.
+    """
+    print("\n── Test 0: parse embedded JSON tool array ──")
+    raw = (
+        'بالتأكيد! هيا بنا. الآن، لنستعد لمغامرتنا التالية. '
+        '[ {"name": "trigger_animation", "args": {"animation": "gesture_follow"}}, '
+        '{"name": "transition_scene", "args": {"scene_id": "masjid_ext", '
+        '"transition_line": "هيا بنا. · Let us go."}} ]'
+    )
+
+    reply, tools = parse_response(raw)
+    tool_names = [t["name"] for t in tools]
+
+    assert reply.startswith("بالتأكيد"), f"Expected prose reply to be preserved, got: {reply}"
+    assert tool_names == ["trigger_animation", "transition_scene"], \
+        f"Expected embedded tools to parse, got: {tools}"
+    assert tools[1]["args"]["scene_id"] == "masjid_ext"
+    print("  ✓ passed")
+
+
 async def test_connection():
     print("\n── Connection Test ──")
 
     state = GameState()
 
-    result = await run_turn(
+    result = await timed_run_turn(
         "Hello",
         [],
         state,
@@ -72,7 +108,7 @@ async def test_1_transition_scene():
     """
     print("\n── Test 1: transition scene ── \"خذني إلى الزبارة\"")
     state  = fresh_majlis_explore()
-    result = await run_turn("خذني إلى الزبارة", [], state)
+    result = await timed_run_turn("خذني إلى الزبارة", [], state)
     print_result(result, state, [
         ("Scene after", state.current_scene),
         ("Phase after", state.current_phase),
@@ -92,7 +128,7 @@ async def test_2_give_directions():
     """
     print("\n── Test 2: give directions ── \"أين البخور؟\"")
     state  = fresh_majlis_explore()
-    result = await run_turn("أين البخور؟", [], state)
+    result = await timed_run_turn("أين البخور؟", [], state)
     print_result(result, state)
 
     tool_names = [t["name"] for t in result["tool_calls_executed"]]
@@ -112,7 +148,7 @@ async def test_3_open_map():
     """
     print("\n── Test 3: open map ── \"افتح الخريطة\"")
     state  = fresh_majlis_explore()
-    result = await run_turn("افتح الخريطة", [], state)
+    result = await timed_run_turn("افتح الخريطة", [], state)
     print_result(result, state)
 
     tool_names = [t["name"] for t in result["tool_calls_executed"]]
@@ -132,7 +168,7 @@ async def test_4_open_inventory():
     """
     print("\n── Test 4: open inventory ── \"ما الذي جمعته؟\"")
     state  = fresh_majlis_explore()
-    result = await run_turn("ما الذي جمعته؟", [], state)
+    result = await timed_run_turn("ما الذي جمعته؟", [], state)
     print_result(result, state)
 
     tool_names = [t["name"] for t in result["tool_calls_executed"]]
@@ -153,7 +189,7 @@ async def test_5_explore_object():
     """
     print("\n── Test 5: explore object ── \"ما هذه الدلة؟\"")
     state  = fresh_majlis_explore()
-    result = await run_turn("ما هذه الدلة؟", [], state)
+    result = await timed_run_turn("ما هذه الدلة؟", [], state)
     print_result(result, state, [
         ("Explored objects", state.explored_objects)
     ])
@@ -172,7 +208,7 @@ async def test_6_plain_text_no_tools():
     """
     print("\n── Test 6: plain text ── \"ما هي قطر؟\"")
     state  = fresh_majlis_explore()
-    result = await run_turn("ما هي قطر؟", [], state)
+    result = await timed_run_turn("ما هي قطر؟", [], state)
     print_result(result, state)
 
     assert result["tool_calls_executed"] == [], \
@@ -184,8 +220,8 @@ async def test_6_plain_text_no_tools():
 
 async def test_7_award_badge():
     """
-    When all objects explored and questions asked, Fanar should fire award_badge.
-    Uses the message 'لقد استكشفت كل شيء في المجلس' to trigger it.
+    When all objects are explored and the visitor asks a normal follow-up question,
+    the deterministic game layer should append award_badge after Maryam answers.
     """
     print("\n── Test 7: award badge ──")
     state = completed_majlis()
@@ -195,7 +231,7 @@ async def test_7_award_badge():
         f"Test setup error — scene not completable. explored={state.explored_objects}, questions={state.questions_asked}"
     print(f"  Scene completable: {state.scene_completable()} ✓")
 
-    result = await run_turn(
+    result = await timed_run_turn(
         "لقد استكشفت كل شيء في المجلس",
         [],
         state
@@ -212,6 +248,10 @@ async def test_7_award_badge():
         "Expected badge in state.badges but it's empty"
     assert "majlis" in state.completed_scenes, \
         "Expected majlis in completed_scenes"
+    assert state.current_scene == "majlis", \
+        "Badge award should not auto-transition away from majlis"
+    assert state.current_phase == StoryPhase.MAJLIS_EXPLORE, \
+        "Badge award should keep the visitor in majlis exploration"
     print("  ✓ passed")
 
 
@@ -222,7 +262,7 @@ async def test_8_multi_tool_travel_with_animation():
     """
     print("\n── Test 8: multi-tool — travel + animation ──")
     state  = fresh_majlis_explore()
-    result = await run_turn("تعال معي إلى مسجد فنار", [], state)
+    result = await timed_run_turn("تعال معي إلى مسجد فنار", [], state)
     print_result(result, state, [
         ("Scene after", state.current_scene),
     ])
@@ -231,9 +271,11 @@ async def test_8_multi_tool_travel_with_animation():
     assert "transition_scene" in tool_names, \
         f"Expected transition_scene but got: {tool_names}"
 
-    # Check scene actually changed
-    assert state.current_scene == "masjid", \
-        f"Expected scene=masjid but got: {state.current_scene}"
+    # Named travel to Fanar goes to the exterior arrival scene first.
+    assert state.current_scene == "masjid_ext", \
+        f"Expected scene=masjid_ext but got: {state.current_scene}"
+    assert state.current_phase == StoryPhase.MASJID_ARRIVAL, \
+        f"Expected phase=MASJID_ARRIVAL but got: {state.current_phase}"
     print("  ✓ passed")
 
 
@@ -246,17 +288,19 @@ async def test_9_conversation_history():
     state = fresh_majlis_explore()
 
     # Turn 1
-    result1 = await run_turn("مرحباً، أنا أزور قطر للمرة الأولى", [], state)
+    result1 = await timed_run_turn("مرحباً، أنا أزور قطر للمرة الأولى", [], state)
     print(f"  Turn 1 reply: {result1['reply'][:80]}...")
+    print(f"  Turn 1 latency: {result1['latency_seconds']:.2f}s")
     print(f"  History after turn 1: {len(result1['updated_history'])} messages")
 
     # Turn 2 — follow-up that requires remembering turn 1
-    result2 = await run_turn(
+    result2 = await timed_run_turn(
         "ما الذي يجب أن أعرفه عن الضيافة القطرية؟",
         result1["updated_history"],
         state
     )
     print(f"  Turn 2 reply: {result2['reply'][:80]}...")
+    print(f"  Turn 2 latency: {result2['latency_seconds']:.2f}s")
     print(f"  History after turn 2: {len(result2['updated_history'])} messages")
 
     assert len(result2["updated_history"]) > len(result1["updated_history"]), \
@@ -269,13 +313,13 @@ async def test_9_conversation_history():
 async def test_10_majlis_intro_greeting():
     """
     On MAJLIS_INTRO phase, Maryam should greet, introduce herself,
-    and fire wave + offer_coffee animations.
+    and fire a greeting animation.
     """
     print("\n── Test 10: majlis intro greeting ──")
     state = GameState()   # default phase is MAJLIS_INTRO
     assert state.current_phase == StoryPhase.MAJLIS_INTRO
 
-    result = await run_turn("مرحباً", [], state)
+    result = await timed_run_turn("مرحباً", [], state)
     print_result(result, state)
 
     tool_names = [t["name"] for t in result["tool_calls_executed"]]
@@ -297,6 +341,7 @@ async def test_10_majlis_intro_greeting():
 
 async def main():
     tests = [
+        test_0_parse_embedded_json_tool_array,
         test_1_transition_scene,
         test_2_give_directions,
         test_3_open_map,
@@ -333,4 +378,5 @@ async def main():
     print('═'*50)
 
 
-asyncio.run(main())
+if __name__ == "__main__":
+    asyncio.run(main())

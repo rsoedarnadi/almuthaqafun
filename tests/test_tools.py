@@ -66,10 +66,12 @@ def test_badge_awarded_when_complete():
     assert "awarded" in result
     assert "ضيف المجلس · Guest of the Majlis" in state.badges
     assert "majlis" in state.completed_scenes
-    # Check that state variables were cleanly reset for the next phase
-    assert state.current_phase == StoryPhase.MASJID_ARRIVAL
-    assert state.explored_objects == []
-    assert state.questions_asked == 0
+    # Badge awards no longer auto-transition. The visitor stays in the current
+    # scene until they explicitly ask to travel.
+    assert state.current_scene == "majlis"
+    assert state.current_phase == StoryPhase.MAJLIS_EXPLORE
+    assert state.explored_objects == ["dallah", "sadu_carpet", "bakhoor", "cushion"]
+    assert state.questions_asked == 1
 
 
 def test_transition_changes_scene():
@@ -82,6 +84,32 @@ def test_transition_changes_scene():
     
     assert state.current_scene == "masjid_ext"
     assert state.current_phase == StoryPhase.MASJID_ARRIVAL
+    assert state.explored_objects == []
+    assert state.questions_asked == 0
+
+
+def test_transition_from_completed_majlis_resets_per_scene_progress():
+    state = GameState(
+        current_scene="majlis",
+        current_phase=StoryPhase.MAJLIS_EXPLORE,
+        explored_objects=["dallah", "sadu_carpet", "bakhoor", "cushion"],
+        questions_asked=1,
+        completed_scenes=["majlis"],
+        badges=["ضيف المجلس · Guest of the Majlis"],
+    )
+
+    result = dispatch_tool("transition_scene", {
+        "scene_id": "masjid_ext",
+        "transition_line": "Let us journey to Masjid Fanar."
+    }, state)
+
+    assert "Transitioning to scene 'masjid_ext'" in result
+    assert state.current_scene == "masjid_ext"
+    assert state.current_phase == StoryPhase.MASJID_ARRIVAL
+    assert state.explored_objects == []
+    assert state.questions_asked == 0
+    assert state.completed_scenes == ["majlis"]
+    assert state.badges == ["ضيف المجلس · Guest of the Majlis"]
 
 
 def test_supplementary_auxiliary_tools():
