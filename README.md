@@ -442,23 +442,15 @@ Providing low-latency streaming modes for TTS and ASR would make conversations w
 
 Adding a dedicated Fanar ASR endpoint would guarantee consistent, high-accuracy Arabic speech transcription across all client devices and browsers.
 
-### 6.4 Fanar Sadiq Integration
-
-Deepening Sadiq integration would allow our guide to reference specific Quranic verses or Hadith contexts with verified, grounded citations.
-
-### 6.5 Fanar Shaheen Integration
-
-Allowing developers to configure Shaheen's translation behavior directly would make it easier to create specialized language and educational modes.
-
-### 6.6 Cultural Education Mode
+### 6.4 Cultural Education Mode
 
 A specialized educational setting with child-friendly vocabulary, adjustable response complexity, and built-in safety filters would make the platform highly suitable for classrooms.
 
-### 6.7 Persistent Learning Memory
+### 6.5 Persistent Learning Memory
 
 Adding secure, database-backed progress tracking would enable children to continue their cultural journey across multiple sessions and devices.
 
-### 6.8 Multimodal Scene Understanding
+### 6.6 Multimodal Scene Understanding
 
 Passing visual scene context (such as the player's 3D coordinates or camera angle) to the model would allow Maryam to react directly to what the child is looking at in the game.
 
