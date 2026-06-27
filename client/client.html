@@ -14,482 +14,1387 @@
       height: 100vh;
       display: flex;
       flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 20px;
-      padding: 24px;
+      overflow: hidden;
     }
 
-    h1 {
-      font-size: 18px;
-      color: #F5C85A;
-      letter-spacing: 0.04em;
-      text-align: center;
-    }
-
-    /* ── Conversation log ── */
-    #log {
-      width: 100%;
-      max-width: 640px;
-      height: 340px;
-      background: rgba(255,255,255,0.04);
-      border: 1px solid rgba(255,255,255,0.09);
-      border-radius: 12px;
-      padding: 16px;
-      overflow-y: auto;
+    /* ── Top bar ── */
+    #topbar {
       display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .msg {
-      max-width: 80%;
-      padding: 10px 14px;
-      border-radius: 10px;
-      font-size: 14px;
-      line-height: 1.6;
-    }
-    .msg.user {
-      background: rgba(245,200,90,0.12);
-      border: 1px solid rgba(245,200,90,0.25);
-      align-self: flex-end;
-      text-align: right;
-    }
-    .msg.maryam {
-      background: rgba(255,255,255,0.07);
-      border: 1px solid rgba(255,255,255,0.1);
-      align-self: flex-start;
-      text-align: right;
-    }
-    .msg .sender {
-      font-size: 11px;
-      font-weight: 600;
-      margin-bottom: 4px;
-      opacity: 0.55;
-      letter-spacing: 0.04em;
-    }
-    .msg.user .sender  { color: #F5C85A; }
-    .msg.maryam .sender { color: #aad4ff; }
-
-    /* ── Tools log ── */
-    #tools-log {
-      width: 100%;
-      max-width: 640px;
-      background: rgba(0,0,0,0.3);
-      border: 1px solid rgba(255,255,255,0.06);
-      border-radius: 8px;
-      padding: 10px 14px;
-      font-size: 11px;
-      color: rgba(255,255,255,0.35);
-      font-family: monospace;
-      min-height: 36px;
-      letter-spacing: 0.02em;
-    }
-    #tools-log span { color: #F5C85A; }
-
-    /* ── Controls ── */
-    #controls {
-      display: flex;
-      gap: 10px;
       align-items: center;
-      width: 100%;
-      max-width: 640px;
+      gap: 10px;
+      padding: 10px 18px;
+      background: rgba(0,0,0,0.6);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      flex-shrink: 0;
+      flex-wrap: wrap;
+      direction: ltr;
     }
+    #topbar h1 { font-size: 15px; font-weight: 600; color: #F5C85A; margin-right: 8px; white-space: nowrap; }
 
-    #text-input {
-      flex: 1;
-      background: rgba(255,255,255,0.06);
-      border: 1px solid rgba(255,255,255,0.12);
-      border-radius: 8px;
-      padding: 10px 14px;
-      color: #f0e6d0;
-      font-size: 14px;
-      direction: rtl;
-      outline: none;
+    #phase-label {
+      font-size: 11px; color: rgba(255,255,255,0.35);
+      border-left: 1px solid rgba(255,255,255,0.12);
+      padding-left: 10px; white-space: nowrap;
     }
-    #text-input:focus { border-color: rgba(245,200,90,0.4); }
-    #text-input::placeholder { color: rgba(255,255,255,0.25); }
+    #phase-label span { color: #F5C85A; }
 
-    button {
-      padding: 10px 16px;
-      border-radius: 8px;
-      border: none;
-      cursor: pointer;
-      font-size: 13px;
-      font-weight: 600;
-      transition: all 0.15s;
-      white-space: nowrap;
+    /* Progress — 3 completable scenes + journey_complete */
+    #progress-dots { display: flex; gap: 6px; align-items: center; }
+    .pdot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.2);
+      transition: all 0.3s; cursor: default;
     }
+    .pdot.done    { background: #70c8a0; border-color: #70c8a0; }
+    .pdot.current { background: #F5C85A; border-color: #F5C85A; box-shadow: 0 0 6px #F5C85A88; }
+    .pdot-label   { font-size: 10px; color: rgba(255,255,255,0.25); }
 
-    #send-btn {
-      background: #B47A2E;
-      color: #fff;
+    #config { display: flex; gap: 8px; align-items: center; margin-left: auto; direction: ltr; }
+    #config label { font-size: 11px; color: rgba(255,255,255,0.3); white-space: nowrap; }
+    #config input {
+      width: 150px; background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08); border-radius: 6px;
+      padding: 5px 8px; color: #f0e6d0; font-size: 11px; outline: none;
     }
-    #send-btn:hover { background: #c98c38; }
-    #send-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-
-    #mic-btn {
-      background: rgba(255,255,255,0.08);
-      color: #f0e6d0;
-      border: 1px solid rgba(255,255,255,0.15);
-      font-size: 18px;
-      padding: 10px 14px;
+    #tts-toggle {
+      font-size: 11px; padding: 5px 10px; border-radius: 6px;
+      background: rgba(112,200,160,0.15); border: 1px solid rgba(112,200,160,0.4);
+      color: #70c8a0; cursor: pointer; white-space: nowrap;
     }
-    #mic-btn:hover  { background: rgba(255,255,255,0.14); }
-    #mic-btn.active { background: rgba(220,60,60,0.3); border-color: rgba(220,60,60,0.5); }
+    #tts-toggle.off { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.1); color: rgba(255,255,255,0.4); }
 
-    /* ── Status ── */
-    #status {
-      font-size: 12px;
-      color: rgba(255,255,255,0.3);
-      text-align: center;
+    /* ── 3D canvas ── */
+    #canvas-wrap { flex: 1; position: relative; overflow: hidden; }
+    #canvas-wrap canvas { display: block; width: 100% !important; height: 100% !important; }
+
+    #scene-label { position: absolute; top: 14px; left: 16px; pointer-events: none; direction: ltr; }
+    #scene-label .en { font-size: 18px; font-weight: 600; color: rgba(255,255,255,0.85); }
+    #scene-label .ar { font-size: 14px; color: rgba(255,255,255,0.4); direction: rtl; margin-top: 2px; }
+
+    #controls-hint {
+      position: absolute; bottom: 14px; right: 16px;
+      font-size: 10px; color: rgba(255,255,255,0.2);
+      pointer-events: none; line-height: 1.8; text-align: right; direction: ltr;
     }
-    #status.listening { color: #e07070; }
-    #status.thinking  { color: #F5C85A; }
-    #status.speaking  { color: #70c8a0; }
+    #status-bar {
+      position: absolute; bottom: 14px; left: 16px;
+      font-size: 10px; color: rgba(255,255,255,0.2);
+      pointer-events: none; direction: ltr;
+    }
+    #loading-overlay {
+      position: absolute; inset: 0;
+      background: rgba(0,0,0,0.65); display: none;
+      align-items: center; justify-content: center;
+      font-size: 14px; color: #F5C85A;
+    }
+    #drop-hint {
+      position: absolute; inset: 0; display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      pointer-events: none; gap: 8px; opacity: 0.1;
+    }
+    #drop-hint .big { font-size: 48px; }
+    #drop-hint .msg { font-size: 14px; color: #f0e6d0; direction: ltr; }
 
-    /* ── Audio indicator ── */
     #audio-indicator {
-      width: 8px; height: 8px;
-      border-radius: 50%;
-      background: #70c8a0;
-      display: none;
-      animation: pulse 1s infinite;
+      position: absolute; top: 14px; right: 16px;
+      width: 8px; height: 8px; border-radius: 50%;
+      background: #70c8a0; display: none; animation: pulse 1s infinite;
     }
     @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
 
-    /* ── Config panel ── */
-    #config {
-      width: 100%;
-      max-width: 640px;
-      display: flex;
-      gap: 10px;
-      align-items: center;
+    /* ── Maryam speech bubble ── */
+    #maryam-bubble {
+      position: absolute; bottom: 90px; left: 50%;
+      transform: translateX(-50%);
+      max-width: min(580px, 88vw); width: max-content;
+      background: rgba(8,6,3,0.9);
+      border: 1px solid rgba(245,200,90,0.3);
+      border-radius: 14px; padding: 14px 18px 12px;
+      backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+      pointer-events: none; opacity: 0;
+      transition: opacity 0.3s ease;
+      direction: rtl; text-align: right;
     }
-    #config label { font-size: 11px; color: rgba(255,255,255,0.3); white-space: nowrap; }
-    #config input {
-      flex: 1;
-      background: rgba(255,255,255,0.04);
+    #maryam-bubble.visible { opacity: 1; pointer-events: auto; }
+    #maryam-bubble .bubble-sender {
+      font-size: 11px; font-weight: 600; color: #aad4ff;
+      letter-spacing: 0.04em; margin-bottom: 6px; opacity: 0.7;
+    }
+    #maryam-bubble .bubble-text { font-size: 15px; line-height: 1.65; color: #f0e6d0; }
+    .dots span {
+      display: inline-block; width: 6px; height: 6px;
+      background: #F5C85A; border-radius: 50%; margin: 0 2px;
+      animation: dot-bounce 1.2s infinite;
+    }
+    .dots span:nth-child(2) { animation-delay: 0.2s; }
+    .dots span:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes dot-bounce { 0%,80%,100%{transform:translateY(0)} 40%{transform:translateY(-6px)} }
+
+    /* ── Object checklist (top-right) ── */
+    #obj-checklist {
+      position: absolute; top: 14px; right: 14px;
+      background: rgba(8,6,3,0.78);
       border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 6px;
+      border-radius: 10px; padding: 10px 12px; min-width: 190px;
+      backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+      direction: rtl;
+    }
+    #obj-checklist.hidden { display: none; }
+    #obj-checklist .cl-title {
+      font-size: 10px; color: rgba(255,255,255,0.3);
+      letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 8px;
+    }
+    .cl-item {
+      display: flex; align-items: center; gap: 7px;
+      font-size: 12px; color: rgba(255,255,255,0.45);
+      margin-bottom: 5px; transition: color 0.3s; direction: rtl;
+    }
+    .cl-item.done { color: #70c8a0; }
+    .cl-check {
+      width: 14px; height: 14px; border-radius: 50%;
+      border: 1px solid rgba(255,255,255,0.2);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 9px; flex-shrink: 0; transition: all 0.3s;
+    }
+    .cl-item.done .cl-check { background: #70c8a0; border-color: #70c8a0; color: #0d0b08; }
+
+    /* ── JSON Tool Panel (bottom-right) ── */
+    #tool-panel {
+      position: absolute; bottom: 90px; right: 14px;
+      width: 270px; max-width: 42vw;
+      background: rgba(5,4,2,0.92);
+      border: 1px solid rgba(245,200,90,0.15);
+      border-radius: 10px; overflow: hidden;
+      direction: ltr; font-family: 'Courier New', monospace;
+      transition: opacity 0.3s; opacity: 0;
+    }
+    #tool-panel.visible { opacity: 1; }
+    #tool-panel-header {
+      display: flex; align-items: center; justify-content: space-between;
       padding: 6px 10px;
-      color: #f0e6d0;
-      font-size: 12px;
-      outline: none;
+      background: rgba(245,200,90,0.07);
+      border-bottom: 1px solid rgba(245,200,90,0.1);
     }
-    #tts-toggle {
-      font-size: 11px;
-      padding: 6px 12px;
-      background: rgba(255,255,255,0.06);
+    #tool-panel-header span { font-size: 10px; color: rgba(245,200,90,0.6); letter-spacing: 0.06em; text-transform: uppercase; }
+    #tool-panel-close { cursor: pointer; font-size: 12px; color: rgba(255,255,255,0.3); background: none; border: none; line-height: 1; padding: 0; }
+    #tool-panel-close:hover { color: rgba(255,255,255,0.7); }
+    #tool-panel-body {
+      padding: 8px 10px; max-height: 220px; overflow-y: auto;
+      scrollbar-width: thin; scrollbar-color: rgba(245,200,90,0.2) transparent;
+    }
+    .tool-entry { margin-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.04); padding-bottom: 8px; }
+    .tool-entry:last-child { margin-bottom: 0; border-bottom: none; padding-bottom: 0; }
+    .tool-ts { font-size: 9px; color: rgba(255,255,255,0.2); margin-bottom: 3px; }
+    .tool-name { font-size: 11px; color: #F5C85A; margin-bottom: 3px; }
+    .tool-name::before { content: '▶ '; font-size: 9px; opacity: 0.6; }
+    .tool-json {
+      font-size: 10px; color: rgba(255,255,255,0.4);
+      white-space: pre-wrap; word-break: break-all;
+      line-height: 1.5; padding-left: 10px;
+      border-left: 1px solid rgba(245,200,90,0.15);
+    }
+    .tool-json .jkey  { color: #aad4ff; }
+    .tool-json .jstr  { color: #c8e6a0; }
+    .tool-json .jnum  { color: #ffb86c; }
+    .tool-json .jbool { color: #ff79c6; }
+
+    /* ── Bottom HUD ── */
+    #hud {
+      position: absolute; bottom: 20px; left: 50%;
+      transform: translateX(-50%);
+      display: flex; align-items: center; gap: 10px; direction: ltr;
+    }
+    #mic-btn {
+      width: 52px; height: 52px; border-radius: 50%;
+      border: 2px solid rgba(255,255,255,0.15);
+      background: rgba(20,16,10,0.8);
+      color: #f0e6d0; font-size: 22px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.15s;
+      backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+    }
+    #mic-btn:hover  { background: rgba(40,30,15,0.9); border-color: rgba(255,255,255,0.35); }
+    #mic-btn.active { background: rgba(180,40,40,0.45); border-color: rgba(220,80,80,0.75); }
+
+    #keyboard-toggle {
+      width: 40px; height: 40px; border-radius: 50%;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(20,16,10,0.7);
+      color: rgba(255,255,255,0.45); font-size: 16px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.15s;
+      backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+    }
+    #keyboard-toggle:hover  { background: rgba(40,30,15,0.9); color: #f0e6d0; }
+    #keyboard-toggle.active { border-color: rgba(245,200,90,0.5); color: #F5C85A; }
+
+    /* ── Input drawer ── */
+    #input-drawer {
+      position: absolute; bottom: 80px; left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      width: min(520px, 92vw);
+      background: rgba(8,6,3,0.9);
       border: 1px solid rgba(255,255,255,0.1);
-      color: rgba(255,255,255,0.5);
+      border-radius: 12px; padding: 12px;
+      backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+      display: flex; gap: 8px; direction: rtl;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.2s ease, transform 0.2s ease;
     }
-    #tts-toggle.on { background: rgba(112,200,160,0.15); border-color: rgba(112,200,160,0.4); color: #70c8a0; }
+    #input-drawer.open { opacity: 1; pointer-events: auto; transform: translateX(-50%) translateY(0); }
+
+    #text-input {
+      flex: 1; background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 8px; padding: 10px 14px;
+      color: #f0e6d0; font-size: 14px; direction: rtl;
+      outline: none; font-family: inherit;
+    }
+    #text-input:focus { border-color: rgba(245,200,90,0.4); }
+    #text-input::placeholder { color: rgba(255,255,255,0.22); }
+
+    #send-btn {
+      padding: 10px 16px; border-radius: 8px; border: none;
+      background: #B47A2E; color: #fff; cursor: pointer;
+      font-size: 13px; font-weight: 600; transition: background 0.15s;
+      white-space: nowrap; flex-shrink: 0;
+    }
+    #send-btn:hover    { background: #c98c38; }
+    #send-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    #mic-status {
+      position: absolute; bottom: 80px; left: 50%;
+      transform: translateX(-50%);
+      font-size: 12px; color: rgba(255,255,255,0.3);
+      white-space: nowrap; pointer-events: none; direction: ltr;
+    }
+    #mic-status.listening { color: #e07070; }
+    #mic-status.thinking  { color: #F5C85A; }
+    #mic-status.speaking  { color: #70c8a0; }
+
+    @keyframes badge-in  { from{opacity:0;transform:translateX(-50%) translateY(-12px)} to{opacity:1;transform:translateX(-50%) translateY(0)} }
+    @keyframes badge-out { from{opacity:1} to{opacity:0} }
   </style>
 </head>
 <body>
 
+<!-- Top bar -->
+<div id="topbar">
   <h1>🕌 Al Muthaqafun · المثقفون</h1>
-
-  <!-- Config -->
+  <div id="phase-label">Phase: <span id="phase-text">majlis_intro</span></div>
+  <!-- 3 completable scenes: majlis, masjid, zubarah -->
+  <div id="progress-dots">
+    <span class="pdot-label">المجلس</span>
+    <div class="pdot current" data-scene="majlis"  title="Majlis (المجلس)"></div>
+    <div class="pdot"         data-scene="masjid"  title="Masjid Fanar (مسجد فنار)"></div>
+    <span class="pdot-label">فنار</span>
+    <div class="pdot"         data-scene="zubarah" title="Al Zubarah Fort (قلعة الزبارة)"></div>
+    <span class="pdot-label">الزبارة</span>
+  </div>
   <div id="config">
-    <label>Agent URL</label>
+    <label>Agent</label>
     <input id="agent-url" value="http://localhost:8000" />
-    <label>TTS URL</label>
+    <label>TTS</label>
     <input id="tts-url" value="http://localhost:8000/tts" />
-    <button id="tts-toggle" class="on" onclick="toggleTTS()">TTS ON</button>
+    <button id="tts-toggle" onclick="toggleTTS()">TTS ON</button>
+  </div>
+</div>
+
+<!-- 3D canvas -->
+<div id="canvas-wrap">
+  <canvas id="c"></canvas>
+
+  <div id="scene-label">
+    <div class="en" id="label-en">Traditional Majlis</div>
+    <div class="ar" id="label-ar">المجلس التقليدي</div>
   </div>
 
-  <!-- Conversation log -->
-  <div id="log"></div>
+  <div id="drop-hint">
+    <div class="big">📦</div>
+    <div class="msg">Drop a .glb file to load it</div>
+  </div>
+  <div id="loading-overlay">Loading model…</div>
+  <div id="controls-hint">
+    Left drag · Rotate<br>Right drag · Pan<br>Scroll · Zoom<br>Click · Select object
+  </div>
+  <div id="status-bar">Ready</div>
+  <div id="audio-indicator"></div>
 
-  <!-- Tool calls log -->
-  <div id="tools-log">Tool calls will appear here…</div>
+  <!-- Object checklist (hidden on exterior/transition scenes) -->
+  <div id="obj-checklist" class="hidden">
+    <div class="cl-title">Explore · استكشف</div>
+    <div id="cl-items"></div>
+  </div>
 
-  <!-- Controls -->
-  <div id="controls">
-    <button id="mic-btn" onclick="toggleMic()" title="Hold to speak">🎙</button>
-    <input id="text-input" type="text" placeholder="اكتب رسالتك هنا أو اضغط على المايكروفون…" />
+  <!-- Maryam speech bubble -->
+  <div id="maryam-bubble">
+    <div class="bubble-sender">مريم · Maryam</div>
+    <div class="bubble-text" id="bubble-text"></div>
+  </div>
+
+  <!-- JSON Tool panel -->
+  <div id="tool-panel">
+    <div id="tool-panel-header">
+      <span>⚙ tool calls</span>
+      <button id="tool-panel-close" onclick="document.getElementById('tool-panel').classList.remove('visible')">✕</button>
+    </div>
+    <div id="tool-panel-body"></div>
+  </div>
+
+  <div id="mic-status">جاهز · Ready</div>
+
+  <div id="hud">
+    <button id="keyboard-toggle" onclick="toggleDrawer()" title="Type instead">⌨</button>
+    <button id="mic-btn" onclick="toggleMic()" title="Speak to Maryam">🎙</button>
+  </div>
+
+  <div id="input-drawer">
+    <input id="text-input" type="text" placeholder="اكتب رسالتك لمريم…" />
     <button id="send-btn" onclick="sendMessage()">إرسال</button>
   </div>
+</div>
 
-  <!-- Status -->
-  <div style="display:flex;align-items:center;gap:8px">
-    <div id="audio-indicator"></div>
-    <div id="status">جاهز · Ready</div>
-  </div>
+<script type="importmap">
+{
+  "imports": {
+    "three":         "https://cdn.jsdelivr.net/npm/three@0.167.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.167.0/examples/jsm/"
+  }
+}
+</script>
 
+<!-- ── Three.js 3D engine ──────────────────────────────────────────────────── -->
+<script type="module">
+import * as THREE        from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { GLTFLoader }    from 'three/addons/loaders/GLTFLoader.js';
+import { DRACOLoader }   from 'three/addons/loaders/DRACOLoader.js';
+
+// ── Scene definitions — keys match SCENE_OBJECTS in prompts.py ────────────────
+// Exterior scenes have no required objects (transition scenes)
+// Interior scenes carry the full object list
+const SCENES = {
+
+  // ── Majlis exterior: camel + Bedouin tent ─────────────────────────────────
+  majlis_ext: {
+    nameEn: 'Traditional Majlis', nameAr: 'المجلس التقليدي',
+    camera: { position: [0, 2.0, 8.0], target: [0, 1.2, 0] },
+    sky: 0x1a1008, fog: { color: 0x261808, density: 0.045 },
+    ambient: { color: 0xffd8a0, intensity: 0.45 },
+    dir:     { color: 0xffcc70, intensity: 1.1, pos: [8, 10, 4] },
+    point:   { color: 0xff9944, intensity: 0.6, pos: [0, 3, 0] },
+    groundColor: 0xb89050,
+    sceneAssets: [
+      { asset:'majlisTent', targetSize:9.5, pos:[0, 0, 0], rot:[0, 0, 0] },
+    ],
+    objects: [
+      { id:'camel',        interactive:false, nameEn:'Arabian Camel',  nameAr:'جمل العربي',
+        desc:'The Arabian camel — the "ship of the desert" — was the backbone of Bedouin life, carrying goods, providing milk, and serving as a symbol of wealth and endurance.',
+        asset:'camel', targetSize:1.35, rot:[0, Math.PI * 0.18, 0],
+        color:0xc8904a, shape:'box', pos:[-5.2, 0, 2.05], scale:[1.0, 1.3, 0.5] },
+      { id:'bedouin_tent', interactive:false, nameEn:'Bedouin Tent',   nameAr:'خيمة البدوي',
+        desc:'Woven from goat and camel hair, the black Bedouin tent (بيت الشعر) is designed to keep cool in the summer heat while providing warmth in desert nights.',
+        color:0x3a2810, shape:'box', pos:[ 1.8, 0.9, -0.3], scale:[2.8, 1.8, 1.6] },
+    ]
+  },
+
+  // ── Majlis interior: dallah, sadu carpet, bakhoor, cushion ───────────────
+  majlis: {
+    nameEn: 'Traditional Majlis — Interior', nameAr: 'المجلس التقليدي — الداخل',
+    camera: { position: [0, 2.0, 8.0], target: [0, 1.2, 0] },
+    sky: 0x100804, fog: { color: 0x1a0e06, density: 0.09 },
+    ambient: { color: 0xffe8c0, intensity: 0.55 },
+    dir:     { color: 0xffcc66, intensity: 0.7,  pos: [3, 6, 2] },
+    point:   { color: 0xff8822, intensity: 1.1,  pos: [0, 2.5, 0] },
+    groundColor: 0x5a3318,
+    objects: [
+      { id:'dallah',      nameEn:'Dallah Coffee Pot', nameAr:'الدلة',
+        desc:'الدلة — the long-spouted coffee pot — is a symbol of Qatari hospitality. Gahwa (Arabic coffee) flavoured with cardamom and saffron is always served to guests.',
+        asset:'dallah', targetSize:0.55, rot:[0, 0, 0],
+        color:0xC8A030, shape:'cylinder', pos:[ 0.0, 0.56, -0.82],  scale:[0.18,0.55,0.18] },
+      { id:'sadu_carpet', nameEn:'Sadu Carpet',        nameAr:'بساط السدو',
+        desc:'Sadu weaving is a Bedouin textile tradition where geometric patterns encode tribal identity and stories. It is listed as UNESCO Intangible Cultural Heritage.',
+        color:0x9A2C2C, shape:'box',      pos:[ 0.0, 0.04, 0.0],  scale:[3.2,0.06,2.4] },
+      { id:'bakhoor',     nameEn:'Bakhoor Incense',    nameAr:'البخور',
+        desc:'Bakhoor — wood chips soaked in fragrant oils — is burned in a mabkhara and passed among guests as a gesture of welcome. The scent of oud is inseparable from Gulf hospitality.',
+        asset:'bakhoor', targetSize:0.45, rot:[0, 0.2, 0],
+        color:0x6B3A1F, shape:'box',      pos:[ 0.9, 0.08, 0.18],  scale:[0.3,0.35,0.3] },
+      { id:'cushion',     nameEn:'Floor Cushion',      nameAr:'الوسادة',
+        desc:'Majlis seating is floor-level, with cushions lining all four walls. The circular arrangement symbolises equality — no seat is higher than another.',
+        color:0x8B2020, shape:'box',      pos:[-1.6, 0.12, 0.0],  scale:[0.9,0.22,0.65] },
+    ]
+  },
+
+  // ── Masjid exterior: spiral minaret ──────────────────────────────────────
+  masjid_ext: {
+    nameEn: 'Masjid Fanar — Exterior', nameAr: 'مسجد فنار',
+    camera: { position: [0, 2.6, 7.0], target: [0, 1.35, 0] },
+    sky: 0x060810, fog: { color: 0x080c18, density: 0.04 },
+    ambient: { color: 0xc0d0ff, intensity: 0.4 },
+    dir:     { color: 0xd0e0ff, intensity: 0.9, pos: [-4, 9, 3] },
+    point:   { color: 0x4488ff, intensity: 0.5, pos: [0, 4, 0] },
+    groundColor: 0x2a3048,
+    sceneAssets: [
+      { asset:'fanarExteriorLights', targetSize:8.5, pos:[0, 0, 0], rot:[0, 0, 0] },
+    ],
+    objects: [
+      { id:'minaret', interactive:false, nameEn:'Spiral Minaret', nameAr:'المئذنة',
+        desc:'The iconic spiral minaret of Masjid Fanar is inspired by the ancient minaret of Samarra, Iraq. It rises 70 metres and is one of the most recognised landmarks of Doha.',
+        color:0xe8e0c8, shape:'cylinder', pos:[ 0.0, 2.0, -1.5], scale:[0.35, 4.0, 0.35] },
+    ]
+  },
+
+  // ── Masjid interior: quran, mihrab, hadeeth, imam ─────────────────────────
+  masjid: {
+    nameEn: 'Masjid Fanar — Interior', nameAr: 'مسجد فنار — الداخل',
+    camera: { position: [0, 1.35, 2.65], target: [0, 1.25, -1.55] },
+    sky: 0x04060e, fog: { color: 0x060810, density: 0.07 },
+    ambient: { color: 0xd0e4ff, intensity: 0.5 },
+    dir:     { color: 0xe0eeff, intensity: 0.65, pos: [-2, 7, 2] },
+    point:   { color: 0x6699ff, intensity: 0.8,  pos: [0, 3, 0] },
+    groundColor: 0x1e2840,
+    sceneAssets: [
+      { asset:'fanarInterior', targetSize:12.0, pos:[0, 0, 0], rot:[0, 0, 0] },
+    ],
+    objects: [
+      { id:'quran',   nameEn:'The Holy Quran',                nameAr:'قاعة الصلاة',
+        desc:'قاعة الصلاة — The Holy Quran is the central scripture of Islam, revealed to the Prophet Muhammad ﷺ over 23 years. Its recitation fills the prayer hall during every prayer.',
+        asset:'quran', targetSize:1.0, rot:[0, 0, 0],
+        color:0x3a5a8a, shape:'box',      pos:[-1.15, 0, -2.0], scale:[3.0, 0.7, 2.2] },
+      { id:'mihrab',  nameEn:'Mihrab',                        nameAr:'المحراب',
+        desc:'المحراب — The prayer niche indicates the qibla, the direction of the Kaaba in Mecca. All worshippers align to face it during salah.',
+        color:0xB89060, shape:'box',      pos:[ 0.0, 0.8, -1.5], scale:[0.7, 1.6, 0.15] },
+      { id:'hadeeth', nameEn:'Book of Prophetic Traditions',  nameAr:'الوضوء',
+        desc:'The Hadith are the recorded sayings and actions of the Prophet Muhammad ﷺ. Together with the Quran, they form the foundation of Islamic law and ethics.',
+        color:0x5a4a2a, shape:'box',      pos:[-1.5, 0.35, 0.5], scale:[0.35, 0.7, 0.5] },
+      { id:'imam',    nameEn:'The Imam',                      nameAr:'الإمام',
+        desc:'الإمام leads the congregation in prayer and serves as a spiritual guide. At Masjid Fanar, the imam is also an educator in Islamic knowledge and culture.',
+        asset:'imam', targetSize:1.05, rot:[0, 0, 0],
+        color:0xf0e8d0, shape:'cylinder', pos:[ 1.35, 0, -1.85], scale:[0.22, 1.1, 0.22] },
+    ]
+  },
+
+  // ── Al Zubarah Fort ───────────────────────────────────────────────────────
+  zubarah: {
+    nameEn: 'Al Zubarah Fort', nameAr: 'قلعة الزبارة',
+    sky: 0x1a1206, fog: { color: 0x241a08, density: 0.055 },
+    ambient: { color: 0xffe0a0, intensity: 0.5 },
+    dir:     { color: 0xffcc80, intensity: 1.1,  pos: [6, 9, 3] },
+    point:   { color: 0xff9944, intensity: 0.7,  pos: [0, 3, 0] },
+    groundColor: 0x9a7a44,
+    objects: [
+      { id:'main_gate',   nameEn:'Main Gate',        nameAr:'البوابة الرئيسية',
+        desc:'The imposing gate of Al Zubarah Fort, built in 1938, was the last line of defence for what was once the largest pearling town in the Gulf.',
+        color:0xb8945a, shape:'box',      pos:[ 0.0, 0.9, -1.8], scale:[1.4,1.8,0.3] },
+      { id:'watchtower',  nameEn:'Watchtower',       nameAr:'برج المراقبة',
+        desc:'Round corner towers gave defenders a 360° view across the desert and sea. From here, guards could spot approaching threats hours in advance.',
+        color:0xc8a460, shape:'cylinder', pos:[ 1.9, 0.9,  0.2], scale:[0.35,1.8,0.35] },
+      { id:'inner_court', nameEn:'Inner Courtyard',  nameAr:'الفناء الداخلي',
+        desc:'The open courtyard at the heart of the fort was used for stabling horses, training soldiers, and storing supplies during prolonged sieges.',
+        color:0xa08840, shape:'box',      pos:[ 0.0, 0.05, 0.4], scale:[2.6,0.1,1.8] },
+      { id:'well',        nameEn:'Ancient Well',     nameAr:'البئر القديمة',
+        desc:'The fortified well guaranteed a water supply during sieges. Al Zubarah is a UNESCO World Heritage Site — the best-preserved example of an 18th-century Gulf settlement.',
+        color:0x706050, shape:'cylinder', pos:[-1.8, 0.3,  0.5], scale:[0.3,0.6,0.3] },
+    ]
+  },
+};
+
+// Completable scenes in story order (mirrors SCENE_REQUIREMENTS keys with badges)
+const STORY_ORDER = ['majlis_ext','majlis','masjid_ext','masjid','zubarah'];
+
+// ── Three.js setup ─────────────────────────────────────────────────────────────
+const canvas   = document.getElementById('c');
+const wrap     = document.getElementById('canvas-wrap');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type    = THREE.PCFSoftShadowMap;
+renderer.outputColorSpace  = THREE.SRGBColorSpace;
+
+const scene  = new THREE.Scene();
+const clock  = new THREE.Clock();
+const camera = new THREE.PerspectiveCamera(55, 1, 0.05, 200);
+camera.position.set(0, 2, 5);
+
+const controls = new OrbitControls(camera, canvas);
+controls.enableDamping = true; controls.dampingFactor = 0.08;
+controls.target.set(0, 0.5, 0);
+controls.minDistance = 1; controls.maxDistance = 20;
+controls.maxPolarAngle = Math.PI * 0.88;
+controls.update();
+
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.5); scene.add(ambientLight);
+const dirLight = new THREE.DirectionalLight(0xffffff, 1.0);
+dirLight.castShadow = true;
+dirLight.shadow.mapSize.set(1024, 1024);
+dirLight.shadow.camera.near = 0.5; dirLight.shadow.camera.far = 30;
+dirLight.shadow.camera.left = dirLight.shadow.camera.bottom = -6;
+dirLight.shadow.camera.right = dirLight.shadow.camera.top  =  6;
+scene.add(dirLight);
+const pointLight = new THREE.PointLight(0xffffff, 0.6, 14); scene.add(pointLight);
+
+const groundMesh = new THREE.Mesh(
+  new THREE.PlaneGeometry(40, 40),
+  new THREE.MeshStandardMaterial({ color: 0x5a3318, roughness: 0.95 })
+);
+groundMesh.rotation.x = -Math.PI / 2;
+groundMesh.receiveShadow = true;
+groundMesh.userData.isGround = true;
+scene.add(groundMesh);
+
+const dracoLoader = new DRACOLoader();
+dracoLoader.setDecoderPath('https://cdn.jsdelivr.net/npm/three@0.167.0/examples/jsm/libs/draco/');
+const gltfLoader = new GLTFLoader(); gltfLoader.setDRACOLoader(dracoLoader);
+
+const MODEL_ASSETS = {
+  majlisTent: '/client/models/majlis_tent.glb',
+  camel: '/client/models/camel.glb',
+  dallah: '/client/models/dallah.glb',
+  bakhoor: '/client/models/bakhoor.glb',
+  fanarExterior: '/client/models/fanar_exterior.glb',
+  fanarExteriorLights: '/client/models/fanar_exterior_lights.glb',
+  fanarInterior: '/client/models/fanar_interior.glb',
+  quran: '/client/models/quran.glb',
+  imam: '/client/models/imam.glb',
+};
+const gltfCache = new Map();
+
+let placeholders = []; let sceneModels = []; let loadedModel = null; let selectedMesh = null;
+let currentKey = 'majlis_ext';
+let buildToken = 0;
+const raycaster = new THREE.Raycaster(); const mouse = new THREE.Vector2();
+
+// ── Resize ─────────────────────────────────────────────────────────────────────
+function resize() {
+  const w = wrap.clientWidth, h = wrap.clientHeight;
+  renderer.setSize(w, h, false);
+  camera.aspect = w / h; camera.updateProjectionMatrix();
+}
+resize(); window.addEventListener('resize', resize);
+
+// ── Scene apply / build ────────────────────────────────────────────────────────
+function applyScene(key) {
+  const d = SCENES[key];
+  scene.background = new THREE.Color(d.sky);
+  scene.fog        = new THREE.FogExp2(d.fog.color, d.fog.density);
+  ambientLight.color.set(d.ambient.color); ambientLight.intensity = d.ambient.intensity;
+  dirLight.color.set(d.dir.color); dirLight.intensity = d.dir.intensity; dirLight.position.set(...d.dir.pos);
+  pointLight.color.set(d.point.color); pointLight.intensity = d.point.intensity; pointLight.position.set(...d.point.pos);
+  groundMesh.material.color.set(d.groundColor);
+  document.getElementById('label-en').textContent = d.nameEn;
+  document.getElementById('label-ar').textContent = d.nameAr;
+}
+
+function loadGltf(assetKey) {
+  const url = MODEL_ASSETS[assetKey];
+  if (!url) return Promise.reject(new Error(`Unknown model asset: ${assetKey}`));
+  if (!gltfCache.has(url)) {
+    gltfCache.set(url, new Promise((resolve, reject) => {
+      gltfLoader.load(url, resolve, undefined, reject);
+    }));
+  }
+  return gltfCache.get(url);
+}
+
+function cloneGltfScene(gltf) {
+  const model = gltf.scene.clone(true);
+  model.traverse(child => {
+    if (!child.isMesh) return;
+    child.castShadow = true;
+    child.receiveShadow = true;
+    if (Array.isArray(child.material)) child.material = child.material.map(mat => mat.clone());
+    else if (child.material) child.material = child.material.clone();
+  });
+  return model;
+}
+
+function fitModelToSetup(model, setup) {
+  model.rotation.set(...(setup.rot || [0, 0, 0]));
+  model.updateMatrixWorld(true);
+
+  let box = new THREE.Box3().setFromObject(model);
+  const size = box.getSize(new THREE.Vector3());
+  const maxSize = Math.max(size.x, size.y, size.z) || 1;
+  const targetSize = setup.targetSize || 1;
+  model.scale.multiplyScalar(targetSize / maxSize);
+  model.updateMatrixWorld(true);
+
+  box = new THREE.Box3().setFromObject(model);
+  const center = box.getCenter(new THREE.Vector3());
+  const pos = setup.pos || setup.position || [0, 0, 0];
+  model.position.x += pos[0] - center.x;
+  model.position.y += pos[1] - box.min.y;
+  model.position.z += pos[2] - center.z;
+  model.updateMatrixWorld(true);
+}
+
+function applyUserDataToModel(model, data) {
+  model.userData = { ...model.userData, ...data };
+  model.traverse(child => {
+    if (!child.isMesh) return;
+    child.userData = { ...child.userData, ...data };
+  });
+}
+
+function createPrimitiveObject(od) {
+  const geo = od.shape === 'cylinder'
+    ? new THREE.CylinderGeometry(od.scale[0], od.scale[0]*1.1, od.scale[1], 16)
+    : new THREE.BoxGeometry(...od.scale);
+  const mat  = new THREE.MeshStandardMaterial({ color: od.color, roughness: 0.75, metalness: 0.1 });
+  const mesh = new THREE.Mesh(geo, mat);
+  mesh.position.set(...od.pos);
+  mesh.castShadow = mesh.receiveShadow = true;
+  mesh.userData = { ...od };
+  scene.add(mesh);
+  placeholders.push(mesh);
+}
+
+async function addSceneModel(assetDef, token) {
+  try {
+    const gltf = await loadGltf(assetDef.asset);
+    if (token !== buildToken) return;
+    const model = cloneGltfScene(gltf);
+    fitModelToSetup(model, assetDef);
+    scene.add(model);
+    sceneModels.push(model);
+  } catch (err) {
+    console.warn(`Failed to load scene asset ${assetDef.asset}:`, err);
+    setStatus(`Missing model: ${assetDef.asset}`);
+  }
+}
+
+async function addObjectModel(od, token) {
+  try {
+    const gltf = await loadGltf(od.asset);
+    if (token !== buildToken) return;
+    const model = cloneGltfScene(gltf);
+    fitModelToSetup(model, od);
+    applyUserDataToModel(model, od);
+    scene.add(model);
+    placeholders.push(model);
+  } catch (err) {
+    console.warn(`Failed to load object asset ${od.asset}; using primitive fallback`, err);
+    if (token === buildToken) createPrimitiveObject(od);
+  }
+}
+
+function clearBuiltScene() {
+  placeholders.forEach(m => scene.remove(m));
+  sceneModels.forEach(m => scene.remove(m));
+  placeholders = [];
+  sceneModels = [];
+}
+
+function buildPlaceholders(key) {
+  buildToken += 1;
+  const token = buildToken;
+  clearBuiltScene();
+
+  (SCENES[key].sceneAssets || []).forEach(assetDef => addSceneModel(assetDef, token));
+  SCENES[key].objects.forEach(od => {
+    if (od.asset) addObjectModel(od, token);
+    else createPrimitiveObject(od);
+  });
+}
+
+function switchScene(key) {
+  if (!SCENES[key]) { console.warn('Unknown scene:', key); return; }
+  currentKey = key;
+  applyScene(key); buildPlaceholders(key); deselect();
+  setStatus(`Scene: ${SCENES[key].nameEn}`);
+  const cam = SCENES[key].camera || { position: [0, 2, 5], target: [0, 0.5, 0] };
+  camera.position.set(...cam.position); controls.target.set(...cam.target); controls.update();
+  if (window._buildChecklist) window._buildChecklist(key);
+}
+
+// ── Raycasting ─────────────────────────────────────────────────────────────────
+canvas.addEventListener('click', e => {
+  const rect = canvas.getBoundingClientRect();
+  mouse.x =  ((e.clientX - rect.left) / rect.width)  * 2 - 1;
+  mouse.y = -((e.clientY - rect.top)  / rect.height) * 2 + 1;
+  raycaster.setFromCamera(mouse, camera);
+  const targets = [...placeholders];
+  if (loadedModel) loadedModel.traverse(c => { if (c.isMesh) targets.push(c); });
+  const hits = raycaster.intersectObjects(targets, true);
+  if (hits.length && !hits[0].object.userData.isGround) select(getPlaceholderRoot(hits[0].object) || hits[0].object);
+  else deselect();
+});
+
+function getPlaceholderRoot(object) {
+  let node = object;
+  while (node) {
+    if (placeholders.includes(node)) return node;
+    node = node.parent;
+  }
+  return null;
+}
+
+function select(mesh) {
+  if (selectedMesh) resetColor(selectedMesh);
+  selectedMesh = mesh;
+  setHighlightColor(mesh, 0xF5C85A);
+  if (mesh.userData.id) {
+    if (mesh.userData.interactive === false) {
+      setStatus(`${mesh.userData.nameEn} is scenic only`);
+      return;
+    }
+    if (window._onObjectClick) window._onObjectClick(mesh.userData.id, mesh.userData.desc || mesh.userData.nameEn);
+    setStatus(`Selected: ${mesh.userData.nameEn}`);
+  }
+}
+function deselect() { if (selectedMesh) resetColor(selectedMesh); selectedMesh = null; }
+function resetColor(mesh) {
+  mesh.traverse?.(child => {
+    if (child.material?.color && child.userData._origColor !== undefined)
+      child.material.color.set(child.userData._origColor);
+  });
+  if (mesh.material?.color && mesh.userData._origColor !== undefined)
+    mesh.material.color.set(mesh.userData._origColor);
+}
+function setHighlightColor(object, color) {
+  object.traverse?.(child => {
+    if (!child.material?.color) return;
+    if (child.userData._origColor === undefined) child.userData._origColor = child.material.color.getHex();
+    child.material.color.set(color);
+  });
+  if (object.material?.color) {
+    if (object.userData._origColor === undefined) object.userData._origColor = object.material.color.getHex();
+    object.material.color.set(color);
+  }
+}
+
+function highlightObject(objId) {
+  const mesh = placeholders.find(m => m.userData.id === objId);
+  if (!mesh) return;
+  if (selectedMesh) resetColor(selectedMesh);
+  selectedMesh = mesh;
+  setHighlightColor(mesh, 0xF5C85A);
+  const box = new THREE.Box3().setFromObject(mesh);
+  controls.target.copy(box.getCenter(new THREE.Vector3())); controls.update();
+}
+
+// ── GLB loading ────────────────────────────────────────────────────────────────
+function loadFile(file) {
+  showLoading(true);
+  const url = URL.createObjectURL(file);
+  gltfLoader.load(url, gltf => {
+    if (loadedModel) scene.remove(loadedModel);
+    const model = gltf.scene;
+    const box = new THREE.Box3().setFromObject(model);
+    model.scale.setScalar(3.0 / Math.max(...box.getSize(new THREE.Vector3()).toArray()));
+    const box2 = new THREE.Box3().setFromObject(model);
+    const ctr  = box2.getCenter(new THREE.Vector3());
+    model.position.x -= ctr.x; model.position.z -= ctr.z; model.position.y -= box2.min.y;
+    model.traverse(c => { if (c.isMesh) c.castShadow = c.receiveShadow = true; });
+    scene.add(model); loadedModel = model;
+    const box3 = new THREE.Box3().setFromObject(model);
+    const ctr3 = box3.getCenter(new THREE.Vector3());
+    const dist = Math.max(...box3.getSize(new THREE.Vector3()).toArray()) * 2;
+    controls.target.copy(ctr3);
+    camera.position.set(ctr3.x+dist, ctr3.y+dist*0.6, ctr3.z+dist);
+    controls.update();
+    URL.revokeObjectURL(url); showLoading(false);
+    document.getElementById('drop-hint').style.display = 'none';
+    setStatus(`Loaded: ${file.name}`);
+  }, xhr => { if (xhr.total) setStatus(`Loading… ${Math.round(xhr.loaded/xhr.total*100)}%`); },
+  err => { showLoading(false); setStatus(`Error: ${err.message}`); });
+}
+wrap.addEventListener('dragover', e => e.preventDefault());
+wrap.addEventListener('drop', e => {
+  e.preventDefault();
+  const f = e.dataTransfer.files[0];
+  if (f && (f.name.endsWith('.glb') || f.name.endsWith('.gltf'))) loadFile(f);
+});
+
+function showLoading(v) { document.getElementById('loading-overlay').style.display = v ? 'flex' : 'none'; }
+function setStatus(msg) { document.getElementById('status-bar').textContent = msg; }
+
+// ── Animate ────────────────────────────────────────────────────────────────────
+function animate() {
+  requestAnimationFrame(animate); controls.update();
+  const t = clock.getElapsedTime();
+  // gentle camel bob
+  const camel = placeholders.find(m => m.userData.id === 'camel');
+  if (camel) camel.position.y = camel.userData.pos[1] + Math.sin(t * 0.6) * 0.03;
+  // minaret slow rotate
+  const minaret = placeholders.find(m => m.userData.id === 'minaret');
+  if (minaret) minaret.rotation.y = t * 0.04;
+  // watchtower
+  const tower = placeholders.find(m => m.userData.id === 'watchtower');
+  if (tower) tower.rotation.y = t * 0.05;
+  // flickering warmth
+  const base = SCENES[currentKey]?.point.intensity ?? 0.8;
+  pointLight.intensity = base * (0.92 + 0.08 * Math.sin(t * 2.1));
+  renderer.render(scene, camera);
+}
+
+applyScene('majlis_ext'); buildPlaceholders('majlis_ext'); animate();
+
+window._switchScene     = switchScene;
+window._highlightObject = highlightObject;
+window._SCENES          = SCENES;
+window._STORY_ORDER     = STORY_ORDER;
+window._getCurrentScene = () => currentKey;
+</script>
+
+<!-- ── Game state + Agent UI ──────────────────────────────────────────────── -->
 <script>
-// ── State ─────────────────────────────────────────────────────────────────────
-const SESSION_ID  = "player_" + Math.random().toString(36).slice(2, 8);
-let history       = [];
-let ttsEnabled    = true;
-let isRecording   = false;
-let mediaRecorder = null;
-let audioChunks   = [];
-let currentAudio  = null;
+// ── SCENE_REQUIREMENTS mirrors storyline.py exactly ────────────────────────────
+// Exterior/transition scenes have no required objects or badge
+const SCENE_REQUIREMENTS = {
+  majlis_ext: {
+    required_objects:  null,   // transition scene — no checklist
+    required_questions: 0,
+    badge_title:        null,
+    next_scene:         'majlis',   // MAJLIS_ENTER
+  },
+  majlis: {
+    required_objects:  ['dallah','sadu_carpet','bakhoor','cushion'],
+    required_questions: 1,
+    badge_title:        'ضيف المجلس · Guest of the Majlis',
+    next_scene:         'masjid_ext',   // MASJID_ARRIVAL
+  },
+  masjid_ext: {
+    required_objects:  null,
+    required_questions: 0,
+    badge_title:        null,
+    next_scene:         'masjid',   // MASJID_ENTER
+  },
+  masjid: {
+    required_objects:  ['quran','mihrab','hadeeth','imam'],
+    required_questions: 1,
+    badge_title:        'زائر المسجد · Visitor of the Masjid',
+    next_scene:         'zubarah',   // ZUBARAH_ARRIVAL
+  },
+  zubarah: {
+    required_objects:  ['main_gate','watchtower','inner_court','well'],
+    required_questions: 1,
+    badge_title:        'حارس الزبارة · Guardian of Zubarah',
+    next_scene:         null,   // JOURNEY_COMPLETE
+  },
+};
 
-// ── UI helpers ────────────────────────────────────────────────────────────────
-function setStatus(text, cls = "") {
-  const el = document.getElementById("status");
-  el.textContent   = text;
-  el.className     = cls;
+// Map scene key → completable dot (only 3 scenes have badges)
+const BADGE_SCENES = ['majlis', 'masjid', 'zubarah'];
+
+// Phase values — mirrors StoryPhase enum values in storyline.py
+const PHASE_FOR_SCENE = {
+  majlis_ext:  'majlis_intro',
+  majlis:      'majlis_explore',
+  masjid_ext:  'masjid_arrival',
+  masjid:      'masjid_explore',
+  zubarah:     'zubarah_arrival',
+};
+
+// Starting values must match GameState defaults in your backend's storyline.py.
+// If your backend still has current_scene="majlis_ext", change 'majlis' → 'majlis_ext' here.
+let gameState = {
+  current_phase:    'majlis_intro',
+  current_scene:    'majlis_ext',
+  explored_objects: [],
+  questions_asked:  0,
+  completed_scenes: [],
+  inventory:        [],
+  badges:           [],
+};
+
+const SESSION_ID = 'player_' + Math.random().toString(36).slice(2, 8);
+let history      = [];
+let ttsEnabled   = true;
+let isRecording  = false;
+let recognition  = null;
+let currentAudio = null;
+let bubbleTimer  = null;
+let drawerOpen   = false;
+
+// ── Checklist ──────────────────────────────────────────────────────────────────
+function buildChecklist(sceneKey) {
+  const reqs = SCENE_REQUIREMENTS[sceneKey];
+  const cl   = document.getElementById('obj-checklist');
+
+  // Hide checklist for transition/exterior scenes
+  if (!reqs || !reqs.required_objects) {
+    cl.classList.add('hidden'); return;
+  }
+  cl.classList.remove('hidden');
+
+  const scenes    = window._SCENES;
+  const container = document.getElementById('cl-items');
+  container.innerHTML = '';
+
+  reqs.required_objects.forEach(objId => {
+    const obj  = scenes[sceneKey]?.objects.find(o => o.id === objId);
+    const done = gameState.explored_objects.includes(objId);
+    const div  = document.createElement('div');
+    div.className = 'cl-item' + (done ? ' done' : '');
+    div.id = 'cl-' + objId;
+    div.innerHTML = `<span class="cl-check">${done ? '✓' : ''}</span>
+      <span>${obj ? obj.nameAr + ' · ' + obj.nameEn : objId}</span>`;
+    container.appendChild(div);
+  });
+}
+window._buildChecklist = buildChecklist;
+
+function markChecked(objId) {
+  const item = document.getElementById('cl-' + objId);
+  if (item && !item.classList.contains('done')) {
+    item.classList.add('done');
+    item.querySelector('.cl-check').textContent = '✓';
+  }
 }
 
-function setLoading(on) {
-  document.getElementById("send-btn").disabled = on;
-  document.getElementById("text-input").disabled = on;
+function getSceneObject(sceneKey, objId) {
+  return window._SCENES?.[sceneKey]?.objects?.find(o => o.id === objId) || null;
 }
 
-function toggleTTS() {
-  ttsEnabled = !ttsEnabled;
-  const btn  = document.getElementById("tts-toggle");
-  btn.textContent = ttsEnabled ? "TTS ON" : "TTS OFF";
-  btn.className   = ttsEnabled ? "on" : "";
+function isRequiredObjectInCurrentScene(objId) {
+  const reqs = SCENE_REQUIREMENTS[gameState.current_scene];
+  return Array.isArray(reqs?.required_objects) && reqs.required_objects.includes(objId);
 }
 
-function appendMessage(role, text) {
-  const log    = document.getElementById("log");
-  const div    = document.createElement("div");
-  div.className = `msg ${role}`;
-  div.innerHTML = `
-    <div class="sender">${role === "user" ? "أنت · You" : "مريم · Maryam"}</div>
-    <div>${text}</div>
-  `;
-  log.appendChild(div);
-  log.scrollTop = log.scrollHeight;
+function isExteriorScene(sceneKey) {
+  return sceneKey === 'majlis_ext' || sceneKey === 'masjid_ext';
 }
 
-function showTools(tools) {
-  const el = document.getElementById("tools-log");
-  if (!tools || tools.length === 0) {
-    el.innerHTML = "<span style='opacity:0.3'>No tools called</span>";
+function isInteriorScene(sceneKey) {
+  return sceneKey === 'majlis' || sceneKey === 'masjid';
+}
+
+function isExteriorToInteriorTransition(previousScene, nextScene) {
+  return (previousScene === 'majlis_ext' && nextScene === 'majlis') ||
+         (previousScene === 'masjid_ext' && nextScene === 'masjid');
+}
+
+function staticObjectScript(sceneKey, objId, fallback) {
+  const obj = getSceneObject(sceneKey, objId);
+  return obj?.desc || fallback || 'هذا عنصر مهم في هذا المشهد. · This is an important object in this scene.';
+}
+
+function applyVisualSceneFromState() {
+  if (gameState.current_scene && window._switchScene) {
+    window._switchScene(gameState.current_scene);
+  }
+  buildChecklist(gameState.current_scene);
+  (gameState.explored_objects || []).forEach(markChecked);
+}
+
+function syncGameStateFromServer(serverState, options = {}) {
+  if (!serverState) return;
+
+  const previousVisualScene = window._getCurrentScene ? window._getCurrentScene() : gameState.current_scene;
+  Object.assign(gameState, serverState);
+
+  updatePhaseLabel();
+  updateProgressDots();
+
+  // For exterior arrival cutscenes, keep the exterior visible while Maryam speaks.
+  // The visual switch to the interior happens after her audio/text explanation.
+  if (options.deferVisualSceneSwitch && isExteriorToInteriorTransition(previousVisualScene, gameState.current_scene)) {
     return;
   }
-  el.innerHTML = tools.map(t =>
-    `<span>${t.name}</span>(${JSON.stringify(t.args)})`
-  ).join("  ·  ");
+
+  if (gameState.current_scene && gameState.current_scene !== previousVisualScene && window._switchScene) {
+    window._switchScene(gameState.current_scene);
+  }
+
+  buildChecklist(gameState.current_scene);
+  (gameState.explored_objects || []).forEach(markChecked);
 }
 
-// ── Send text message to agent ────────────────────────────────────────────────
-async function sendMessage(overrideText = null) {
-  const input   = document.getElementById("text-input");
-  const message = overrideText ?? input.value.trim();
-  if (!message) return;
-
-  input.value = "";
-  appendMessage("user", message);
-  setLoading(true);
-  setStatus("مريم تفكر… · Thinking…", "thinking");
-
+async function syncStaticTool(toolName, args, options = {}) {
   try {
-    const agentUrl = document.getElementById("agent-url").value.trim();
-
-    const res = await fetch(`${agentUrl}/turn`, {
-      method:  "POST",
-      headers: { "Content-Type": "application/json" },
+    const res = await fetch(`${document.getElementById('agent-url').value.trim()}/tool`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        session_id:   SESSION_ID,
-        user_message: message,
-        history:      history,
-        game_state:   {}          // backend manages state via session_id
-      })
+        session_id: SESSION_ID,
+        tool_name: toolName,
+        args,
+        game_state: gameState,
+      }),
     });
-
-    if (!res.ok) throw new Error(`Agent error: ${res.status}`);
-
+    if (!res.ok) throw new Error(`Tool sync ${res.status}`);
     const data = await res.json();
-
-    // Update local history
-    history = data.updated_history ?? history;
-
-    // Show reply and tools
-    appendMessage("maryam", data.reply);
-    showTools(data.tool_calls_executed);
-
-    // Handle tool calls on the frontend
-    handleToolCalls(data.tool_calls_executed ?? []);
-
-    // TTS
-    if (ttsEnabled && data.reply) {
-      await speakReply(data.reply);
-    } else {
-      setStatus("جاهز · Ready");
-    }
-
+    if (options.applyServerState && data.game_state) syncGameStateFromServer(data.game_state);
+    return data;
   } catch (err) {
-    appendMessage("maryam", `⚠️ خطأ في الاتصال · Connection error: ${err.message}`);
-    setStatus("خطأ · Error");
-    console.error(err);
-  } finally {
-    setLoading(false);
+    console.warn('Static tool sync failed:', err);
+    return null;
   }
 }
 
-// ── TTS — call your backend TTS endpoint ─────────────────────────────────────
-async function speakReply(text) {
-  setStatus("مريم تتكلم… · Speaking…", "speaking");
-  document.getElementById("audio-indicator").style.display = "block";
+function runStaticExploreObject(objId, desc) {
+  const sceneKey = gameState.current_scene;
+  const obj = getSceneObject(sceneKey, objId);
+  const spoken = staticObjectScript(sceneKey, objId, desc);
+  const tool = {
+    name: 'explore_object',
+    args: { object_id: objId, spoken_context: spoken },
+  };
 
-  // Stop any currently playing audio
-  if (currentAudio) {
-    currentAudio.pause();
-    currentAudio = null;
+  if (!gameState.explored_objects.includes(objId)) {
+    gameState.explored_objects.push(objId);
   }
 
-  try {
-    const ttsUrl = document.getElementById("tts-url").value.trim();
+  markChecked(objId);
+  if (window._highlightObject) window._highlightObject(objId);
+  showToolPanel([tool]);
+  showBubble(spoken, false);
+  setStatus(`Explored: ${obj?.nameEn || objId}`);
+  updateProgressDots();
 
-    const res = await fetch(ttsUrl, {
-      method:  "POST",
-      headers: { "Content-Type": "application/json" },
+  syncStaticTool('explore_object', tool.args);
+  checkSceneCompletion();
+}
+
+// Player clicks a 3D object. Clicks run a static local script immediately,
+// then sync the matching explore_object tool to the backend.
+window._onObjectClick = function(objId, desc) {
+  if (!isRequiredObjectInCurrentScene(objId)) {
+    showBubble(desc || 'هذا جزء من المشهد فقط. · This is only part of the scene.', false);
+    return;
+  }
+
+  runStaticExploreObject(objId, desc);
+};
+
+// ── Scene completion logic ─────────────────────────────────────────────────────
+function checkSceneCompletion() {
+  const reqs = SCENE_REQUIREMENTS[gameState.current_scene];
+  if (!reqs || !reqs.required_objects) return;  // exterior scenes skip
+  const allDone  = reqs.required_objects.every(o => gameState.explored_objects.includes(o));
+  const alreadyCompleted = gameState.completed_scenes.includes(gameState.current_scene);
+  if (allDone && !alreadyCompleted) {
+    setStatus('All objects explored · Ask Maryam anything');
+  }
+}
+
+function completeScene() {
+  const reqs = SCENE_REQUIREMENTS[gameState.current_scene];
+  const sceneName = gameState.current_scene;
+  gameState.completed_scenes.push(gameState.current_scene);
+  if (reqs.badge_title) {
+    gameState.badges.push(reqs.badge_title);
+    showToolPanel([{
+      name: 'award_badge',
+      args: {
+        scene_name: sceneName,
+        badge_title: reqs.badge_title,
+        congratulations: `أحسنت! أكملت هذا المشهد. · Well done! You completed this scene.`,
+      },
+    }]);
+    showBadgeToast(reqs.badge_title);
+    syncStaticTool('award_badge', {
+      scene_name: sceneName,
+      badge_title: reqs.badge_title,
+      congratulations: `أحسنت! أكملت هذا المشهد. · Well done! You completed this scene.`,
+    });
+  }
+  updateProgressDots();
+
+  if (reqs.next_scene) {
+    showBubble('أحسنت! يمكنك الاستمرار في طرح الأسئلة هنا، أو اطلب مني عندما تريد الانتقال للمشهد التالي. · Well done! You can keep asking questions here, or tell me when you want to move to the next scene.', false);
+  } else {
+    gameState.current_phase = 'journey_complete';
+    updatePhaseLabel();
+    setTimeout(() => showBubble('🌟 لقد أتممت رحلتك عبر التراث القطري! · You have completed your journey through Qatar\'s heritage!', false), 3000);
+  }
+}
+
+function transitionTo(sceneKey) {
+  gameState.current_scene    = sceneKey;
+  gameState.explored_objects = [];
+  gameState.questions_asked  = 0;
+  gameState.current_phase    = PHASE_FOR_SCENE[sceneKey] || sceneKey;
+  updatePhaseLabel();
+  updateProgressDots();
+  if (window._switchScene) window._switchScene(sceneKey);
+  buildChecklist(sceneKey);
+}
+
+// ── Progress dots — one per badge scene ───────────────────────────────────────
+function updateProgressDots() {
+  document.querySelectorAll('.pdot').forEach(dot => {
+    const s = dot.dataset.scene;
+    dot.classList.remove('done','current');
+    if (gameState.completed_scenes.includes(s)) dot.classList.add('done');
+    // Show current on both interior & exterior of same location
+    else if (
+      s === gameState.current_scene ||
+      (s === 'majlis'  && gameState.current_scene === 'majlis_ext')  ||
+      (s === 'masjid'  && gameState.current_scene === 'masjid_ext')
+    ) dot.classList.add('current');
+  });
+}
+
+function updatePhaseLabel() {
+  document.getElementById('phase-text').textContent = gameState.current_phase;
+}
+
+// ── Speech bubble ──────────────────────────────────────────────────────────────
+function showBubble(text, isTyping) {
+  const bubble  = document.getElementById('maryam-bubble');
+  const content = document.getElementById('bubble-text');
+  if (bubbleTimer) { clearTimeout(bubbleTimer); bubbleTimer = null; }
+  if (isTyping) {
+    content.innerHTML = '<span class="dots"><span></span><span></span><span></span></span>';
+  } else {
+    content.textContent = text;
+    const ms = Math.min(Math.max(text.length * 42, 4500), 16000);
+    bubbleTimer = setTimeout(hideBubble, ms);
+  }
+  bubble.classList.add('visible');
+}
+function hideBubble() { document.getElementById('maryam-bubble').classList.remove('visible'); }
+
+// ── JSON Tool Panel ────────────────────────────────────────────────────────────
+function syntaxColor(json) {
+  return json
+    .replace(/("(?:\\u[a-fA-F0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?)/g, m =>
+      m.endsWith(':') ? `<span class="jkey">${m}</span>` : `<span class="jstr">${m}</span>`)
+    .replace(/\b(true|false)\b/g, '<span class="jbool">$1</span>')
+    .replace(/\b(-?\d+(?:\.\d+)?)\b/g, '<span class="jnum">$1</span>');
+}
+
+function showToolPanel(tools) {
+  if (!tools?.length) return;
+  const panel = document.getElementById('tool-panel');
+  const body  = document.getElementById('tool-panel-body');
+  const ts    = new Date().toLocaleTimeString();
+  const frag  = document.createDocumentFragment();
+  tools.forEach(t => {
+    const entry = document.createElement('div');
+    entry.className = 'tool-entry';
+    const pretty = JSON.stringify(t.args ?? {}, null, 2);
+    entry.innerHTML = `<div class="tool-ts">${ts}</div>
+      <div class="tool-name">${t.name}</div>
+      <pre class="tool-json">${syntaxColor(pretty)}</pre>`;
+    frag.appendChild(entry);
+  });
+  body.insertBefore(frag, body.firstChild);
+  panel.classList.add('visible');
+}
+
+// ── TTS ────────────────────────────────────────────────────────────────────────
+function toggleTTS() {
+  ttsEnabled = !ttsEnabled;
+  const btn = document.getElementById('tts-toggle');
+  btn.textContent = ttsEnabled ? 'TTS ON' : 'TTS OFF';
+  btn.className   = ttsEnabled ? '' : 'off';
+}
+
+async function speakReply(text) {
+  setMicStatus('مريم تتكلم… · Speaking…','speaking');
+  document.getElementById('audio-indicator').style.display = 'block';
+  if (currentAudio) { currentAudio.pause(); currentAudio = null; }
+  try {
+    const res = await fetch(document.getElementById('tts-url').value.trim(), {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ text })
     });
-
-    if (!res.ok) throw new Error(`TTS error: ${res.status}`);
-
-    const blob = await res.blob();
-    const url  = URL.createObjectURL(blob);
+    if (!res.ok) throw new Error(`TTS ${res.status}`);
+    const url = URL.createObjectURL(await res.blob());
     currentAudio = new Audio(url);
-
     currentAudio.onended = () => {
-      setStatus("جاهز · Ready");
-      document.getElementById("audio-indicator").style.display = "none";
+      setMicStatus('جاهز · Ready');
+      document.getElementById('audio-indicator').style.display = 'none';
       URL.revokeObjectURL(url);
     };
-
     await currentAudio.play();
-
   } catch (err) {
-    // TTS failed — don't crash the whole flow
-    console.warn("TTS failed:", err.message);
-    setStatus("جاهز (TTS unavailable) · Ready");
-    document.getElementById("audio-indicator").style.display = "none";
+    console.warn('TTS failed:', err.message);
+    setMicStatus('جاهز · Ready');
+    document.getElementById('audio-indicator').style.display = 'none';
   }
 }
 
-// ── STT — browser Web Speech API ─────────────────────────────────────────────
-let recognition = null;
+// ── Agent call ─────────────────────────────────────────────────────────────────
+async function sendMessage(overrideText, options = {}) {
+  const input   = document.getElementById('text-input');
+  const message = overrideText ?? input.value.trim();
+  if (!message) return;
+  if (!overrideText) input.value = '';
 
-function initSpeechRecognition() {
-  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SpeechRecognition) {
-    alert("Speech recognition not supported in this browser. Use Chrome.");
-    return false;
+  // Do NOT increment questions_asked on the frontend.
+  // The backend run_turn() owns question counting and scene completion state.
+
+  document.getElementById('send-btn').disabled = true;
+  document.getElementById('text-input').disabled = true;
+  setMicStatus('مريم تفكر… · Thinking…','thinking');
+  showBubble('', true);
+
+  try {
+    const res = await fetch(`${document.getElementById('agent-url').value.trim()}/turn`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ session_id: SESSION_ID, user_message: message, history, game_state: gameState })
+    });
+    if (!res.ok) throw new Error(`Agent error: ${res.status}`);
+    const data = await res.json();
+    history = data.updated_history ?? history;
+
+    const tools = data.tool_calls_executed || [];
+    const previousVisualScene = window._getCurrentScene ? window._getCurrentScene() : gameState.current_scene;
+    const nextServerScene = data.game_state?.current_scene;
+    const deferExteriorTransition = isExteriorToInteriorTransition(previousVisualScene, nextServerScene);
+
+    if (tools.length) {
+      showToolPanel(tools);
+      // Run non-transition visual effects immediately, but delay the actual scene swap
+      // until Maryam has finished explaining the exterior setting.
+      handleToolCalls(tools.filter(t => t.name !== 'transition_scene'));
+    }
+
+    // Server-side GameState is the source of truth after tool execution.
+    if (data.game_state) {
+      syncGameStateFromServer(data.game_state, { deferVisualSceneSwitch: deferExteriorTransition });
+    }
+
+    showBubble(data.reply, false);
+
+    if (ttsEnabled && data.reply && !options.silentTTS) await speakReply(data.reply);
+    else setMicStatus('جاهز · Ready');
+
+    if (deferExteriorTransition) {
+      setMicStatus('ندخل الآن… · Entering…', 'thinking');
+      setTimeout(() => {
+        handleToolCalls(tools.filter(t => t.name === 'transition_scene'));
+        applyVisualSceneFromState();
+        setMicStatus('جاهز · Ready');
+      }, 900);
+    }
+
+  } catch (err) {
+    showBubble(`⚠️ خطأ في الاتصال · ${err.message}`, false);
+    setMicStatus('خطأ · Error');
+    console.error(err);
+  } finally {
+    document.getElementById('send-btn').disabled = false;
+    document.getElementById('text-input').disabled = false;
   }
+}
 
-  recognition = new SpeechRecognition();
-  recognition.continuous    = false;
-  recognition.interimResults = true;
-  recognition.lang          = "ar-QA";   // Qatari Arabic — falls back to ar
+// ── Tool call handler ──────────────────────────────────────────────────────────
+function handleToolCalls(tools) {
+  tools.forEach(tool => {
+    console.log('[TOOL]', tool.name, tool.args);
+    switch (tool.name) {
 
-  recognition.onstart = () => {
-    setStatus("جارٍ الاستماع… · Listening…", "listening");
-    document.getElementById("mic-btn").classList.add("active");
-  };
+      case 'transition_scene': {
+        // Backend state will decide the real scene. This is only a quick visual hint.
+        const sid = tool.args.scene_id;
+        if (sid && window._SCENES?.[sid] && window._switchScene) window._switchScene(sid);
+        break;
+      }
 
-  recognition.onresult = (e) => {
-    const transcript = Array.from(e.results)
-      .map(r => r[0].transcript)
-      .join("");
-    document.getElementById("text-input").value = transcript;
+      case 'explore_object': {
+        const oid = tool.args.object_id;
+        if (window._highlightObject) window._highlightObject(oid);
+        markChecked(oid);
+        break;
+      }
 
-    // If final result, send automatically
-    if (e.results[e.results.length - 1].isFinal) {
-      recognition.stop();
+      case 'award_badge': {
+        const title = tool.args.badge_title;
+        if (title) showBadgeToast(title);
+        break;
+      }
+
+      case 'trigger_animation':
+        console.log('→ animation:', tool.args.animation);
+        break;
+
+      case 'give_directions':
+        if (window._highlightObject) window._highlightObject(tool.args.destination);
+        break;
+
+      case 'open_ui':
+        console.log('→ UI panel:', tool.args.panel);
+        break;
     }
-  };
+  });
+}
 
+// ── Badge toast ────────────────────────────────────────────────────────────────
+function showBadgeToast(title) {
+  const el = document.createElement('div');
+  Object.assign(el.style, {
+    position:'absolute', top:'60px', left:'50%',
+    transform:'translateX(-50%)',
+    background:'rgba(245,200,90,0.14)',
+    border:'1px solid rgba(245,200,90,0.45)',
+    borderRadius:'12px', padding:'12px 22px',
+    color:'#F5C85A', fontSize:'15px',
+    direction:'rtl', zIndex:'999',
+    backdropFilter:'blur(10px)',
+    animation:'badge-in 0.4s ease forwards',
+    whiteSpace:'nowrap',
+  });
+  el.textContent = '🏅 ' + title;
+  document.getElementById('canvas-wrap').appendChild(el);
+  setTimeout(() => {
+    el.style.animation = 'badge-out 0.5s ease forwards';
+    setTimeout(() => el.remove(), 520);
+  }, 3800);
+}
+
+// ── STT ────────────────────────────────────────────────────────────────────────
+function initSpeechRecognition() {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) { alert('Speech recognition requires Chrome.'); return false; }
+  recognition = new SR();
+  recognition.continuous = false; recognition.interimResults = true; recognition.lang = 'ar-QA';
+  recognition.onstart  = () => { setMicStatus('جارٍ الاستماع… · Listening…','listening'); document.getElementById('mic-btn').classList.add('active'); };
+  recognition.onresult = e => {
+    const t = Array.from(e.results).map(r => r[0].transcript).join('');
+    document.getElementById('text-input').value = t;
+    if (e.results[e.results.length-1].isFinal) recognition.stop();
+  };
   recognition.onend = () => {
-    document.getElementById("mic-btn").classList.remove("active");
+    document.getElementById('mic-btn').classList.remove('active');
     isRecording = false;
-    const transcript = document.getElementById("text-input").value.trim();
-    if (transcript) {
-      setStatus("جاهز · Ready");
-      sendMessage();   // auto-send after speech ends
-    } else {
-      setStatus("لم يتم التعرف على الكلام · No speech detected");
-    }
+    const t = document.getElementById('text-input').value.trim();
+    if (t) { setMicStatus('جاهز · Ready'); sendMessage(); }
+    else setMicStatus('لم يتم التعرف · No speech');
   };
-
-  recognition.onerror = (e) => {
-    console.error("STT error:", e.error);
-    setStatus(`خطأ في التعرف على الكلام · STT error: ${e.error}`);
-    document.getElementById("mic-btn").classList.remove("active");
+  recognition.onerror = e => {
+    setMicStatus(`خطأ · ${e.error}`);
+    document.getElementById('mic-btn').classList.remove('active');
     isRecording = false;
   };
-
   return true;
 }
 
 function toggleMic() {
   if (!recognition && !initSpeechRecognition()) return;
-
-  if (isRecording) {
-    recognition.stop();
-    isRecording = false;
-  } else {
-    isRecording = true;
-    recognition.start();
-  }
+  if (isRecording) { recognition.stop(); isRecording = false; }
+  else             { isRecording = true;  recognition.start(); }
 }
 
-// ── Handle tool calls on the frontend ────────────────────────────────────────
-// This is where you'll hook into Three.js / Unity WebGL later.
-// For now it just logs to console and shows a visual indicator.
-function handleToolCalls(tools) {
-  tools.forEach(tool => {
-    console.log(`[TOOL] ${tool.name}`, tool.args);
-
-    switch (tool.name) {
-      case "transition_scene":
-        console.log(`→ Load scene: ${tool.args.scene_id}`);
-        // TODO: trigger Three.js scene switch
-        break;
-
-      case "trigger_animation":
-        console.log(`→ Play animation: ${tool.args.animation}`);
-        // TODO: trigger NPC animation
-        break;
-
-      case "open_ui":
-        console.log(`→ Open UI panel: ${tool.args.panel}`);
-        // TODO: show UI overlay
-        break;
-
-      case "award_badge":
-        console.log(`→ Award badge: ${tool.args.badge_title}`);
-        // TODO: show badge UI
-        break;
-
-      case "explore_object":
-        console.log(`→ Highlight object: ${tool.args.object_id}`);
-        // TODO: highlight object in scene
-        break;
-
-      case "give_directions":
-        console.log(`→ Show waypoint to: ${tool.args.destination}`);
-        // TODO: show direction arrow
-        break;
-
-      default:
-        console.log(`→ Unknown tool: ${tool.name}`);
-    }
-  });
+// ── Keyboard drawer ────────────────────────────────────────────────────────────
+function toggleDrawer() {
+  drawerOpen = !drawerOpen;
+  document.getElementById('input-drawer').classList.toggle('open', drawerOpen);
+  document.getElementById('keyboard-toggle').classList.toggle('active', drawerOpen);
+  if (drawerOpen) setTimeout(() => document.getElementById('text-input').focus(), 220);
 }
-
-// ── Keyboard shortcut — Enter to send ────────────────────────────────────────
-document.getElementById("text-input").addEventListener("keydown", e => {
-  if (e.key === "Enter" && !e.shiftKey) {
-    e.preventDefault();
-    sendMessage();
-  }
+document.getElementById('text-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
 });
 
-// ── Boot message ──────────────────────────────────────────────────────────────
-window.addEventListener("DOMContentLoaded", () => {
-  appendMessage("maryam", "مرحباً! أنا مريم. اكتب أو تكلم لتبدأ الرحلة. · Hello! I am Maryam. Type or speak to begin your journey.");
-  setStatus(`Session: ${SESSION_ID}`);
+function setMicStatus(text, cls) {
+  const el = document.getElementById('mic-status');
+  el.textContent = text; el.className = cls || '';
+}
+
+// ── Boot ───────────────────────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => {
+    buildChecklist(gameState.current_scene);
+    updateProgressDots();
+  }, 300);
+  showBubble('مرحباً! أنا مريم — مرشدتك الثقافية في قطر. اضغط على المايكروفون أو ⌨ لتبدأ رحلتك. · Hello! I am Maryam, your Qatari cultural guide. Tap the mic or ⌨ to begin your journey.', false);
+  setMicStatus(`Session: ${SESSION_ID}`);
 });
 </script>
 </body>
