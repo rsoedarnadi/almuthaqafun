@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Al Muthaqafun — Fanar Heritage Quest</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <div id="app">
+    <canvas id="threeCanvas"></canvas>
+
+    <div id="topBar">
+      <div>
+        <div class="title">Al Muthaqafun</div>
+        <div class="subtitle">Fanar Heritage Quest</div>
+      </div>
+      <div id="sceneBadge">Exterior</div>
+    </div>
+
+    <div id="leftPanel" class="glass">
+      <div class="panelTitle">Journey</div>
+      <button id="enterBtn" class="primaryBtn">Enter Mosque</button>
+      <button id="backBtn" class="secondaryBtn">Back Outside</button>
+      <button id="resetBtn" class="secondaryBtn">Reset Progress</button>
+      <div class="divider"></div>
+      <div class="panelTitle">Required Objects</div>
+      <div id="progressList"></div>
+    </div>
+
+    <div id="dialoguePanel" class="glass">
+      <div class="dialogueHeader">
+        <div>
+          <div class="speaker">Al Rawi</div>
+          <div class="speakerSub">Cultural narrator</div>
+        </div>
+        <button id="closeDialogueBtn" class="smallBtn">×</button>
+      </div>
+      <div id="dialogueText">Click a glowing marker to learn about Fanar.</div>
+    </div>
+
+    <div id="badgePopup" class="glass hidden">
+      <div class="badgeIcon">✦</div>
+      <div class="badgeTitle">Badge Unlocked</div>
+      <div class="badgeText">زائر فنار · Visitor of Fanar</div>
+    </div>
+
+    <div id="passportPanel" class="glass hidden">
+      <div class="passportTitle">Passport Stamp</div>
+      <div class="stamp">Fanar Mosque</div>
+    </div>
+
+    <div id="statusToast"></div>
+
+    <div id="loadingOverlay">
+      <div>
+        <div class="loader"></div>
+        <div class="loadingText">Loading Fanar experience...</div>
+      </div>
+    </div>
+
+    <div id="hint">Drag to orbit · Scroll to zoom · Click glowing markers</div>
+  </div>
+
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+    }
+  }
+  </script>
+
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
