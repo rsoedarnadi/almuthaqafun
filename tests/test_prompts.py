@@ -26,11 +26,12 @@ pytestmark = pytest.mark.asyncio
 async def test_intro_scene_prompt():
     """
     Validates that the system prompt generated for MAJLIS_INTRO contains
-    correct metadata, the host's introduction instructions, and the correct phase.
+    correct exterior-scene metadata, the host's introduction instructions, and
+    the correct phase.
     """
     state = GameState()
     state.current_phase = StoryPhase.MAJLIS_INTRO
-    state.current_scene = "majlis"
+    state.current_scene = "majlis_ext"
     
     result = build_system_prompt(state)
     
@@ -40,7 +41,8 @@ async def test_intro_scene_prompt():
     
     # Ensure Maryam's identity and bilingual guidelines are intact
     assert "مريم" in result or "Maryam" in result, "Prompt must establish Maryam's identity in Arabic or English."
-    assert "الدلة" in result or "dallah" in result, "Prompt must contain reference to Dallah (الدلة)."
+    assert "majlis_ext" in result, "Intro prompt must use the exterior majlis scene."
+    assert "traditional Qatari majlis tent" in result, "Intro prompt must describe the majlis exterior arrival."
     assert "majlis_intro" in result, "Current phase should be mapped in prompt."
     
     print("\n" + "="*80)
@@ -124,8 +126,8 @@ async def test_complete_scene_prompt():
 @pytest.mark.asyncio
 async def test_masjid_arrival_prompt():
     """
-    Validates that transitioning scene states to the Masjid correctly 
-    modifies the mapped descriptions, objects, and phase-specific instructions.
+    Validates that transitioning scene states to Masjid Fanar correctly
+    modifies the mapped description and phase-specific exterior instructions.
     """
     state = GameState()
     state.current_phase = StoryPhase.MASJID_ARRIVAL
@@ -137,7 +139,7 @@ async def test_masjid_arrival_prompt():
     # Assertions
     assert len(result) > 1000
     assert "masjid_ext" in result, "Current scene must be registered as masjid_ext."
-    assert "minaret" in result or "المئذنة" in result, "Mosque objects like the minaret (المئذنة) must be exposed to the agent."
+    assert "SCENE OBJECTS" in result, "Prompt must retain the scene object section even for transition scenes."
     assert "spiral minaret" in result or "الحلزونية" in result, "Phase instructions for Masjid arrival must be integrated."
     
     print("\n" + "="*80)

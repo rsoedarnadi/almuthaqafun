@@ -46,21 +46,23 @@ def test_scene_completable_when_requirements_met():
     assert state.scene_completable() is True, "Scene should be completable when all objects are explored and questions asked."
 
 
-def test_exterior_scene_is_instantly_completable():
+def test_exterior_scene_is_not_completable():
     """
-    Verifies that exterior transition scenes (like 'majlis_ext' and 'masjid_ext') 
-    which require 0 objects and 0 questions are completable instantly.
+    Verifies that exterior transition scenes (like 'majlis_ext' and 'masjid_ext')
+    are cinematic only. They do not award badges and should move only through
+    transition_scene.
     """
     state = GameState()
     # 'majlis_ext' is the default start scene
     assert state.current_scene == "majlis_ext"
-    assert state.scene_completable() is True, "Transition/Exterior scenes with no object requirements must be instantly completable."
+    assert state.scene_completable() is False, "Transition/exterior scenes should not be badge-completable."
 
 
-def test_complete_scene_transitions_phase_and_awards_badge():
+def test_complete_scene_awards_badge_without_transitioning():
     """
     Verifies that calling complete_scene() correctly appends the badge,
-    adds the scene to completed_scenes list, and moves the game phase forward.
+    adds the scene to completed_scenes list, and keeps the visitor in the
+    current scene until an explicit transition_scene call.
     """
     state = GameState()
     state.current_scene = "majlis"
@@ -77,6 +79,7 @@ def test_complete_scene_transitions_phase_and_awards_badge():
     # Check assertions
     assert "majlis" in state.completed_scenes, "The scene must be recorded as completed."
     assert "ضيف المجلس · Guest of the Majlis" in state.badges, "The player must be awarded the correct badge."
-    assert state.current_phase == StoryPhase.MASJID_ARRIVAL, "The phase must advance to MASJID_ARRIVAL."
-    assert len(state.explored_objects) == 0, "The explored objects checklist should reset for the next scene."
-    assert state.questions_asked == 0, "The questions asked count should reset for the next scene."
+    assert state.current_scene == "majlis", "Completing a badge must not transition scenes."
+    assert state.current_phase == StoryPhase.MAJLIS_EXPLORE, "The phase should remain in the same exploration scene."
+    assert state.explored_objects == ["dallah", "sadu_carpet", "bakhoor", "cushion"]
+    assert state.questions_asked == 1

@@ -136,6 +136,33 @@ def _coerce_response_payload(data) -> tuple[str, list]:
     return reply, _normalize_tools(tools)
 
 
+def _extract_embedded_json_tool_array(text: str) -> tuple[str, list]:
+    """
+    Accept model slips like:
+    "لنذهب الآن. [{\"name\":\"transition_scene\", ...}]"
+    where valid JSON tools are appended after prose instead of wrapped in the
+    required {"reply": "...", "tools": [...]} object.
+    """
+    decoder = json.JSONDecoder()
+
+    for match in re.finditer(r"\[", text or ""):
+        start = match.start()
+        try:
+            data, end = decoder.raw_decode(text[start:])
+        except json.JSONDecodeError:
+            continue
+
+        reply, tools = _coerce_response_payload(data)
+        if not tools:
+            continue
+
+        cleaned_reply = f"{text[:start]} {text[start + end:]}".strip()
+        cleaned_reply = re.sub(r"\s+", " ", cleaned_reply)
+        return cleaned_reply or reply, tools
+
+    return text, []
+
+
 def parse_response(raw: str) -> tuple[str, list]:
     """
     Parses structural JSON outputs returned by the Fanar Agent.
@@ -164,16 +191,11 @@ def parse_response(raw: str) -> tuple[str, list]:
         except json.JSONDecodeError:
             pass
 
-    # Step C: Bare tools-array fallback.
-    match = re.search(r'(\[.*\])', clean, re.DOTALL)
-    if match:
-        try:
-            data = json.loads(match.group(1))
-            reply, tools = _coerce_response_payload(data)
-            if tools:
-                return reply, tools
-        except json.JSONDecodeError:
-            pass
+    # Step C: Bare or embedded tools-array fallback.
+    # This catches valid JSON tool arrays appended after prose.
+    reply, tools = _extract_embedded_json_tool_array(clean)
+    if tools:
+        return reply, tools
 
     # Step D: Pseudo tool-call fallback, e.g. [transition_scene(masjid_ext)].
     reply, tools = _parse_pseudo_tool_calls(clean)
@@ -186,13 +208,31 @@ def parse_response(raw: str) -> tuple[str, list]:
 
 def _message_requests_transition(user_message: str) -> bool:
     msg = (user_message or "").lower()
-    transition_keywords = [
-        "خذني", "اذهب", "انتقل", "دعنا نذهب", "ادخل", "ندخل",
-        "المشهد التالي", "مشهد آخر", "مكان آخر",
-        "take me", "go to", "let's go", "lets go", "let’s go", "visit", "enter", "go inside",
-        "next scene", "another scene", "move on",
+    destination_terms = [
+        "masjid", "fanar", "mosque", "majlis", "zubarah", "fort",
+        "مسجد", "فنار", "مجلس", "زبارة", "قلعة",
     ]
-    return any(keyword in msg for keyword in transition_keywords)
+    travel_terms = [
+        "خذني", "اذهب", "انتقل", "دعنا نذهب",
+        "take me", "visit", "head", "travel",
+        "let's", "lets", "let’s", "let us",
+    ]
+    go_destination_pattern = (
+        r"(?:^|[.!?]\s*)go\s+(?:to\s+)?(?:the\s+)?"
+        r"(?:masjid|fanar|mosque|majlis|zubarah|fort)\b"
+    )
+    enter_terms = ["ادخل", "ندخل", "enter", "go inside", "inside"]
+    next_scene_terms = ["المشهد التالي", "مشهد آخر", "مكان آخر", "next scene", "another scene", "move on"]
+
+    return (
+        any(term in msg for term in next_scene_terms)
+        or any(term in msg for term in enter_terms)
+        or bool(re.search(go_destination_pattern, msg))
+        or (
+            any(term in msg for term in travel_terms)
+            and any(term in msg for term in destination_terms)
+        )
+    )
 
 
 def _filter_transition_tools(user_message: str, tools: list) -> list:

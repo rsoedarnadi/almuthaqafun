@@ -73,7 +73,7 @@ After the badge is awarded, keep answering questions in this same scene until th
 The visitor has completed the majlis.
 Keep answering majlis questions normally.
 Do not invite the visitor to leave unless they explicitly ask what places they can visit next.
-Only transition if the visitor explicitly names a destination, such as "take me to Masjid Fanar" or "go to the mosque".
+Only transition if the visitor explicitly names a destination, such as "let's go to Masjid Fanar", "let us go to the mosque", "take me to Fanar", or "go to the mosque".
 For Masjid Fanar travel, put trigger_animation(animation="gesture_follow") first, then transition_scene(scene_id="masjid_ext") in the JSON tools array.
 Never transition on a simple yes, هيا, greeting, or ordinary majlis question.""",
 

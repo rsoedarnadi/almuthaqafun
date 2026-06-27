@@ -64,6 +64,17 @@
     }
     #tts-toggle.off { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.1); color: rgba(255,255,255,0.4); }
 
+    #temp-scene-btn {
+      font-size: 11px; padding: 5px 10px; border-radius: 6px;
+      background: rgba(245,200,90,0.14); border: 1px solid rgba(245,200,90,0.35);
+      color: #F5C85A; cursor: pointer; white-space: nowrap;
+    }
+    #temp-scene-btn:hover { background: rgba(245,200,90,0.22); }
+    #temp-scene-btn:disabled {
+      background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.08);
+      color: rgba(255,255,255,0.28); cursor: not-allowed;
+    }
+
     /* ── 3D canvas ── */
     #canvas-wrap { flex: 1; position: relative; overflow: hidden; }
     #canvas-wrap canvas { display: block; width: 100% !important; height: 100% !important; }
@@ -292,6 +303,7 @@
     <div class="pdot"         data-scene="zubarah" title="Al Zubarah Fort (قلعة الزبارة)"></div>
     <span class="pdot-label">الزبارة</span>
   </div>
+  <button id="temp-scene-btn" onclick="temporaryNextScene()" title="Temporary offline scene transition">Next scene</button>
   <div id="config">
     <label>Agent</label>
     <input id="agent-url" value="http://localhost:8000" />
@@ -374,55 +386,98 @@ import { DRACOLoader }   from 'three/addons/loaders/DRACOLoader.js';
 // ── Scene definitions — keys match SCENE_OBJECTS in prompts.py ────────────────
 // Exterior scenes have no required objects (transition scenes)
 // Interior scenes carry the full object list
+const MAJLIS_SCENE_ASSETS = [
+  { asset:'majlisTent', targetSize:9.5, pos:[0, 0, 0], rot:[0, 1.57, 0] },
+];
+
+const MARYAM_STANDING_SCENE_ASSET = {
+  asset:'maryamStanding', targetSize:0.8, pos:[1.0, 0, 3.0], rot:[0, -1.9, 0]
+};
+
+const MARYAM_SITTING_SCENE_ASSET = {
+  asset:'maryamSitting', targetSize:0.8, pos:[1.55, 0, 0.35], rot:[0, -2.0, 0]
+};
+
+const MAJLIS_SCENIC_OBJECTS = [
+  { id:'camel', interactive:false, nameEn:'Arabian Camel', nameAr:'جمل العربي',
+    desc:'The Arabian camel — the "ship of the desert" — was the backbone of Bedouin life, carrying goods, providing milk, and serving as a symbol of wealth and endurance.',
+    asset:'camel', targetSize:1.35, rot:[0, Math.PI * 0.18, 0],
+    color:0xc8904a, shape:'box', pos:[-5.2, 0, 2.05], scale:[1.0, 1.3, 0.5] },
+];
+
+const MAJLIS_EXPLORABLE_OBJECTS = [
+  { id:'dallah', nameEn:'Dallah Coffee Pot', nameAr:'الدلة',
+    desc:'الدلة — the long-spouted coffee pot — is a symbol of Qatari hospitality. Gahwa (Arabic coffee) flavoured with cardamom and saffron is always served to guests.',
+    asset:'dallah', targetSize:0.55, rot:[0, 0, 0],
+    color:0xC8A030, shape:'cylinder', pos:[ 0.0, 0.06, 0.82], scale:[0.18,0.55,0.18] },
+  { id:'sadu_carpet', nameEn:'Sadu Carpet', nameAr:'بساط السدو',
+    desc:'Sadu weaving is a Bedouin textile tradition where geometric patterns encode tribal identity and stories. It is listed as UNESCO Intangible Cultural Heritage.',
+    texture:'saduPattern', textureRepeat:[1, 1],
+    color:0x9A2C2C, shape:'box', pos:[ 0.0, 0.04, 1.2], scale:[3.2,0.06,2.4] },
+  { id:'bakhoor', nameEn:'Bakhoor Incense', nameAr:'البخور',
+    desc:'Bakhoor — wood chips soaked in fragrant oils — is burned in a mabkhara and passed among guests as a gesture of welcome. The scent of oud is inseparable from Gulf hospitality.',
+    asset:'bakhoor', targetSize:0.45, rot:[0, 0.2, 0],
+    color:0x6B3A1F, shape:'box', pos:[ 0.9, 0.06, 1.2], scale:[0.3,0.35,0.3] },
+  { id:'cushion', nameEn:'Floor Cushion', nameAr:'الوسادة',
+    desc:'Majlis seating is floor-level, with cushions lining all four walls. The circular arrangement symbolises equality — no seat is higher than another.',
+    asset:'cushion', targetSize:0.6, rot:[0, 0, 0],
+    texture:'cushionPattern', textureRepeat:[1, 1],
+    color:0x8B2020, shape:'box', pos:[-1.6, 0.05, 0.8], scale:[0.9,0.22,0.65] },
+];
+
 const SCENES = {
 
   // ── Majlis exterior: camel + Bedouin tent ─────────────────────────────────
   majlis_ext: {
     nameEn: 'Traditional Majlis', nameAr: 'المجلس التقليدي',
-    camera: { position: [0, 2.0, 8.0], target: [0, 1.2, 0] },
-    sky: 0x1a1008, fog: { color: 0x261808, density: 0.045 },
-    ambient: { color: 0xffd8a0, intensity: 0.45 },
-    dir:     { color: 0xffcc70, intensity: 1.1, pos: [8, 10, 4] },
-    point:   { color: 0xff9944, intensity: 0.6, pos: [0, 3, 0] },
-    groundColor: 0xb89050,
+    camera: { position: [0, 2.0, 10.0], target: [0, 1.0, 0] },
+    sky: 0x08090d, fog: { color: 0x08090d, near: 12, far: 28 },
+    ambient: { color: 0xffedd0, intensity: 0.35 },
+    hemi:    { sky: 0x536f9f, ground: 0x3a1f0d, intensity: 1.75 },
+    dir:     { color: 0xb6cfff, intensity: 1.15, pos: [-6, 8, 6] },
+    point:   { color: 0xff8a32, intensity: 1.8, distance: 10, pos: [-3.45, 0.75, 3.35] },
+    extraLights: [
+      { color:0xffc477, intensity:4.2, distance:16, pos:[ 2.7, 2.45, -0.35] },
+      { color:0xffc477, intensity:3.4, distance:15, pos:[-2.7, 2.45, -0.35] },
+      { color:0xffa85c, intensity:2.8, distance:11, pos:[ 0.0, 1.35,  2.35] },
+    ],
+    groundColor: 0xd8b878,
+    groundTexture: 'sandRipple',
+    stars: true,
     sceneAssets: [
-      { asset:'majlisTent', targetSize:9.5, pos:[0, 0, 0], rot:[0, 0, 0] },
+      ...MAJLIS_SCENE_ASSETS,
+      MARYAM_STANDING_SCENE_ASSET,
     ],
     objects: [
-      { id:'camel',        interactive:false, nameEn:'Arabian Camel',  nameAr:'جمل العربي',
-        desc:'The Arabian camel — the "ship of the desert" — was the backbone of Bedouin life, carrying goods, providing milk, and serving as a symbol of wealth and endurance.',
-        asset:'camel', targetSize:1.35, rot:[0, Math.PI * 0.18, 0],
-        color:0xc8904a, shape:'box', pos:[-5.2, 0, 2.05], scale:[1.0, 1.3, 0.5] },
-      { id:'bedouin_tent', interactive:false, nameEn:'Bedouin Tent',   nameAr:'خيمة البدوي',
-        desc:'Woven from goat and camel hair, the black Bedouin tent (بيت الشعر) is designed to keep cool in the summer heat while providing warmth in desert nights.',
-        color:0x3a2810, shape:'box', pos:[ 1.8, 0.9, -0.3], scale:[2.8, 1.8, 1.6] },
+      ...MAJLIS_SCENIC_OBJECTS,
+      ...MAJLIS_EXPLORABLE_OBJECTS.map(od => ({ ...od, interactive:false })),
     ]
   },
 
   // ── Majlis interior: dallah, sadu carpet, bakhoor, cushion ───────────────
   majlis: {
     nameEn: 'Traditional Majlis — Interior', nameAr: 'المجلس التقليدي — الداخل',
-    camera: { position: [0, 2.0, 8.0], target: [0, 1.2, 0] },
-    sky: 0x100804, fog: { color: 0x1a0e06, density: 0.09 },
-    ambient: { color: 0xffe8c0, intensity: 0.55 },
-    dir:     { color: 0xffcc66, intensity: 0.7,  pos: [3, 6, 2] },
-    point:   { color: 0xff8822, intensity: 1.1,  pos: [0, 2.5, 0] },
-    groundColor: 0x5a3318,
+    camera: { position: [-1.0, 0.5, 1.9], target: [2.0, 1.0, -1.0] },
+    sky: 0x08090d, fog: { color: 0x08090d, near: 12, far: 28 },
+    ambient: { color: 0xffedd0, intensity: 0.35 },
+    hemi:    { sky: 0x536f9f, ground: 0x3a1f0d, intensity: 1.75 },
+    dir:     { color: 0xb6cfff, intensity: 1.15, pos: [-6, 8, 6] },
+    point:   { color: 0xff8a32, intensity: 1.8, distance: 10, pos: [-3.45, 0.75, 3.35] },
+    extraLights: [
+      { color:0xffc477, intensity:4.2, distance:16, pos:[ 2.7, 2.45, -0.35] },
+      { color:0xffc477, intensity:3.4, distance:15, pos:[-2.7, 2.45, -0.35] },
+      { color:0xffa85c, intensity:2.8, distance:11, pos:[ 0.0, 1.35,  2.35] },
+    ],
+    groundColor: 0xd8b878,
+    groundTexture: 'sandRipple',
+    stars: true,
+    sceneAssets: [
+      ...MAJLIS_SCENE_ASSETS,
+      MARYAM_SITTING_SCENE_ASSET,
+    ],
     objects: [
-      { id:'dallah',      nameEn:'Dallah Coffee Pot', nameAr:'الدلة',
-        desc:'الدلة — the long-spouted coffee pot — is a symbol of Qatari hospitality. Gahwa (Arabic coffee) flavoured with cardamom and saffron is always served to guests.',
-        asset:'dallah', targetSize:0.55, rot:[0, 0, 0],
-        color:0xC8A030, shape:'cylinder', pos:[ 0.0, 0.56, -0.82],  scale:[0.18,0.55,0.18] },
-      { id:'sadu_carpet', nameEn:'Sadu Carpet',        nameAr:'بساط السدو',
-        desc:'Sadu weaving is a Bedouin textile tradition where geometric patterns encode tribal identity and stories. It is listed as UNESCO Intangible Cultural Heritage.',
-        color:0x9A2C2C, shape:'box',      pos:[ 0.0, 0.04, 0.0],  scale:[3.2,0.06,2.4] },
-      { id:'bakhoor',     nameEn:'Bakhoor Incense',    nameAr:'البخور',
-        desc:'Bakhoor — wood chips soaked in fragrant oils — is burned in a mabkhara and passed among guests as a gesture of welcome. The scent of oud is inseparable from Gulf hospitality.',
-        asset:'bakhoor', targetSize:0.45, rot:[0, 0.2, 0],
-        color:0x6B3A1F, shape:'box',      pos:[ 0.9, 0.08, 0.18],  scale:[0.3,0.35,0.3] },
-      { id:'cushion',     nameEn:'Floor Cushion',      nameAr:'الوسادة',
-        desc:'Majlis seating is floor-level, with cushions lining all four walls. The circular arrangement symbolises equality — no seat is higher than another.',
-        color:0x8B2020, shape:'box',      pos:[-1.6, 0.12, 0.0],  scale:[0.9,0.22,0.65] },
+      ...MAJLIS_SCENIC_OBJECTS,
+      ...MAJLIS_EXPLORABLE_OBJECTS,
     ]
   },
 
@@ -435,43 +490,50 @@ const SCENES = {
     dir:     { color: 0xd0e0ff, intensity: 0.9, pos: [-4, 9, 3] },
     point:   { color: 0x4488ff, intensity: 0.5, pos: [0, 4, 0] },
     groundColor: 0x2a3048,
+    stars: true,
     sceneAssets: [
       { asset:'fanarExteriorLights', targetSize:8.5, pos:[0, 0, 0], rot:[0, 0, 0] },
+      { ...MARYAM_STANDING_SCENE_ASSET, pos:[1.0, 0, 2.5], rot:[0, -1.9, 0] },
     ],
-    objects: [
-      { id:'minaret', interactive:false, nameEn:'Spiral Minaret', nameAr:'المئذنة',
-        desc:'The iconic spiral minaret of Masjid Fanar is inspired by the ancient minaret of Samarra, Iraq. It rises 70 metres and is one of the most recognised landmarks of Doha.',
-        color:0xe8e0c8, shape:'cylinder', pos:[ 0.0, 2.0, -1.5], scale:[0.35, 4.0, 0.35] },
-    ]
+    objects: []
   },
 
   // ── Masjid interior: quran, mihrab, hadeeth, imam ─────────────────────────
   masjid: {
     nameEn: 'Masjid Fanar — Interior', nameAr: 'مسجد فنار — الداخل',
-    camera: { position: [0, 1.35, 2.65], target: [0, 1.25, -1.55] },
+    camera: { position: [0, 1.35, 3.0], target: [0, 1.25, -1.55] },
     sky: 0x04060e, fog: { color: 0x060810, density: 0.07 },
-    ambient: { color: 0xd0e4ff, intensity: 0.5 },
-    dir:     { color: 0xe0eeff, intensity: 0.65, pos: [-2, 7, 2] },
-    point:   { color: 0x6699ff, intensity: 0.8,  pos: [0, 3, 0] },
+    ambient: { color: 0xffefd8, intensity: 0.72 },
+    hemi:    { sky: 0xfff3df, ground: 0x5a4738, intensity: 0.65 },
+    dir:     { color: 0xfff0d0, intensity: 0.28, pos: [-2, 6, 2] },
+    point:   { color: 0xffd28a, intensity: 1.35, distance: 8, pos: [0, 2.9, -0.65] },
+    extraLights: [
+      { color:0xffe0a8, intensity:1.1, distance:7, pos:[-2.0, 2.45, -1.2] },
+      { color:0xffe0a8, intensity:1.1, distance:7, pos:[ 2.0, 2.45, -1.2] },
+      { color:0xffc982, intensity:0.75, distance:5, pos:[ 0.0, 1.65,  1.1] },
+    ],
     groundColor: 0x1e2840,
     sceneAssets: [
       { asset:'fanarInterior', targetSize:12.0, pos:[0, 0, 0], rot:[0, 0, 0] },
+      { ...MARYAM_SITTING_SCENE_ASSET, pos:[1.45, 0, 0.25], rot:[0, 1.9, 0] },
     ],
     objects: [
       { id:'quran',   nameEn:'The Holy Quran',                nameAr:'قاعة الصلاة',
         desc:'قاعة الصلاة — The Holy Quran is the central scripture of Islam, revealed to the Prophet Muhammad ﷺ over 23 years. Its recitation fills the prayer hall during every prayer.',
-        asset:'quran', targetSize:1.0, rot:[0, 0, 0],
+        asset:'quran', targetSize:0.8, rot:[0, 0, 0],
         color:0x3a5a8a, shape:'box',      pos:[-1.15, 0, -2.0], scale:[3.0, 0.7, 2.2] },
       { id:'mihrab',  nameEn:'Mihrab',                        nameAr:'المحراب',
         desc:'المحراب — The prayer niche indicates the qibla, the direction of the Kaaba in Mecca. All worshippers align to face it during salah.',
-        color:0xB89060, shape:'box',      pos:[ 0.0, 0.8, -1.5], scale:[0.7, 1.6, 0.15] },
+        asset:'mihrab', targetSize:2.8, rot:[0, 0, 0],
+        color:0xB89060, shape:'box',      pos:[ 0, 0, -5.0], scale:[0.7, 1.6, 0.15] },
       { id:'hadeeth', nameEn:'Book of Prophetic Traditions',  nameAr:'الوضوء',
         desc:'The Hadith are the recorded sayings and actions of the Prophet Muhammad ﷺ. Together with the Quran, they form the foundation of Islamic law and ethics.',
-        color:0x5a4a2a, shape:'box',      pos:[-1.5, 0.35, 0.5], scale:[0.35, 0.7, 0.5] },
+        asset:'hadeeth', targetSize:0.6, rot:[-0.85, 0, 0],
+        color:0x5a4a2a, shape:'box',      pos:[-1.5, 0.08, 0.5], scale:[0.35, 0.7, 0.5] },
       { id:'imam',    nameEn:'The Imam',                      nameAr:'الإمام',
         desc:'الإمام leads the congregation in prayer and serves as a spiritual guide. At Masjid Fanar, the imam is also an educator in Islamic knowledge and culture.',
-        asset:'imam', targetSize:1.05, rot:[0, 0, 0],
-        color:0xf0e8d0, shape:'cylinder', pos:[ 1.35, 0, -1.85], scale:[0.22, 1.1, 0.22] },
+        asset:'imam', targetSize:1.5, rot:[0, -1.9, 0],
+        color:0xf0e8d0, shape:'cylinder', pos:[ 1.4, 0, -4.6], scale:[0.22, 1.1, 0.22] },
     ]
   },
 
@@ -511,6 +573,8 @@ renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type    = THREE.PCFSoftShadowMap;
 renderer.outputColorSpace  = THREE.SRGBColorSpace;
+renderer.toneMapping       = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.12;
 
 const scene  = new THREE.Scene();
 const clock  = new THREE.Clock();
@@ -525,6 +589,7 @@ controls.maxPolarAngle = Math.PI * 0.88;
 controls.update();
 
 const ambientLight = new THREE.AmbientLight(0xffffff, 0.5); scene.add(ambientLight);
+const hemiLight = new THREE.HemisphereLight(0xffffff, 0x222222, 0.0); scene.add(hemiLight);
 const dirLight = new THREE.DirectionalLight(0xffffff, 1.0);
 dirLight.castShadow = true;
 dirLight.shadow.mapSize.set(1024, 1024);
@@ -533,15 +598,86 @@ dirLight.shadow.camera.left = dirLight.shadow.camera.bottom = -6;
 dirLight.shadow.camera.right = dirLight.shadow.camera.top  =  6;
 scene.add(dirLight);
 const pointLight = new THREE.PointLight(0xffffff, 0.6, 14); scene.add(pointLight);
+const sceneExtraLights = new THREE.Group(); scene.add(sceneExtraLights);
+
+function createSandRippleTexture(grayscale = false) {
+  const size = 512;
+  const textureCanvas = document.createElement('canvas');
+  textureCanvas.width = size;
+  textureCanvas.height = size;
+  const ctx = textureCanvas.getContext('2d');
+  const image = ctx.createImageData(size, size);
+  const data = image.data;
+
+  for (let y = 0; y < size; y++) {
+    for (let x = 0; x < size; x++) {
+      const nx = x / size;
+      const ny = y / size;
+      const ripple =
+        Math.sin((nx * 18 + Math.sin(ny * 7) * 0.7) * Math.PI * 2) * 0.5 +
+        Math.sin((ny * 13 + nx * 3.5) * Math.PI * 2) * 0.25;
+      const shade = THREE.MathUtils.clamp(0.58 + ripple * 0.16, 0, 1);
+      const i = (y * size + x) * 4;
+
+      if (grayscale) {
+        const v = Math.floor(shade * 255);
+        data[i] = v; data[i + 1] = v; data[i + 2] = v;
+      } else {
+        data[i] = Math.floor(198 * shade + 78);
+        data[i + 1] = Math.floor(164 * shade + 66);
+        data[i + 2] = Math.floor(105 * shade + 42);
+      }
+      data[i + 3] = 255;
+    }
+  }
+
+  ctx.putImageData(image, 0, 0);
+  const texture = new THREE.CanvasTexture(textureCanvas);
+  texture.wrapS = THREE.RepeatWrapping;
+  texture.wrapT = THREE.RepeatWrapping;
+  texture.repeat.set(8, 8);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  return texture;
+}
+
+const sandRippleMap = createSandRippleTexture(false);
+const sandRippleBump = createSandRippleTexture(true);
 
 const groundMesh = new THREE.Mesh(
-  new THREE.PlaneGeometry(40, 40),
-  new THREE.MeshStandardMaterial({ color: 0x5a3318, roughness: 0.95 })
+  new THREE.PlaneGeometry(40, 40, 34, 34),
+  new THREE.MeshStandardMaterial({ color: 0x5a3318, roughness: 0.95, metalness: 0.0 })
 );
 groundMesh.rotation.x = -Math.PI / 2;
 groundMesh.receiveShadow = true;
 groundMesh.userData.isGround = true;
 scene.add(groundMesh);
+
+const majlisStars = (() => {
+  const starCount = 280;
+  const positions = new Float32Array(starCount * 3);
+  for (let i = 0; i < starCount; i++) {
+    const radius = THREE.MathUtils.randFloat(13, 24);
+    const angle = THREE.MathUtils.randFloat(0, Math.PI * 2);
+    const height = THREE.MathUtils.randFloat(6.5, 15.5);
+    positions[i * 3] = Math.cos(angle) * radius;
+    positions[i * 3 + 1] = height;
+    positions[i * 3 + 2] = Math.sin(angle) * radius;
+  }
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  const material = new THREE.PointsMaterial({
+    color: 0xffffff,
+    size: 2.2,
+    sizeAttenuation: false,
+    transparent: true,
+    opacity: 0.92,
+    depthWrite: false,
+  });
+  const stars = new THREE.Points(geometry, material);
+  stars.name = 'Majlis_Soft_Twinkling_Stars';
+  scene.add(stars);
+  return stars;
+})();
 
 const dracoLoader = new DRACOLoader();
 dracoLoader.setDecoderPath('https://cdn.jsdelivr.net/npm/three@0.167.0/examples/jsm/libs/draco/');
@@ -552,13 +688,23 @@ const MODEL_ASSETS = {
   camel: '/client/models/camel.glb',
   dallah: '/client/models/dallah.glb',
   bakhoor: '/client/models/bakhoor.glb',
+  cushion: '/client/models/cushion.glb',
   fanarExterior: '/client/models/fanar_exterior.glb',
   fanarExteriorLights: '/client/models/fanar_exterior_lights.glb',
   fanarInterior: '/client/models/fanar_interior.glb',
   quran: '/client/models/quran.glb',
+  mihrab: '/client/models/mihrab.glb',
+  hadeeth: '/client/models/hadeeth.glb',
   imam: '/client/models/imam.glb',
+  maryamStanding: '/client/models/maryam_standing.glb',
+  maryamSitting: '/client/models/maryam_sitting.glb',
+};
+const TEXTURE_ASSETS = {
+  saduPattern: '/client/models/sadu_pattern1.jpg',
+  cushionPattern: '/client/models/sadu_pattern2.jpg',
 };
 const gltfCache = new Map();
+const textureLoader = new THREE.TextureLoader();
 
 let placeholders = []; let sceneModels = []; let loadedModel = null; let selectedMesh = null;
 let currentKey = 'majlis_ext';
@@ -577,13 +723,46 @@ resize(); window.addEventListener('resize', resize);
 function applyScene(key) {
   const d = SCENES[key];
   scene.background = new THREE.Color(d.sky);
-  scene.fog        = new THREE.FogExp2(d.fog.color, d.fog.density);
+  scene.fog = d.fog.near !== undefined
+    ? new THREE.Fog(d.fog.color, d.fog.near, d.fog.far)
+    : new THREE.FogExp2(d.fog.color, d.fog.density);
   ambientLight.color.set(d.ambient.color); ambientLight.intensity = d.ambient.intensity;
+  if (d.hemi) {
+    hemiLight.color.set(d.hemi.sky);
+    hemiLight.groundColor.set(d.hemi.ground);
+    hemiLight.intensity = d.hemi.intensity;
+  } else {
+    hemiLight.intensity = 0;
+  }
   dirLight.color.set(d.dir.color); dirLight.intensity = d.dir.intensity; dirLight.position.set(...d.dir.pos);
-  pointLight.color.set(d.point.color); pointLight.intensity = d.point.intensity; pointLight.position.set(...d.point.pos);
+  pointLight.color.set(d.point.color);
+  pointLight.intensity = d.point.intensity;
+  pointLight.distance = d.point.distance || 14;
+  pointLight.position.set(...d.point.pos);
+  sceneExtraLights.clear();
+  (d.extraLights || []).forEach(lightDef => {
+    const light = new THREE.PointLight(lightDef.color, lightDef.intensity, lightDef.distance || 0);
+    light.position.set(...lightDef.pos);
+    sceneExtraLights.add(light);
+  });
   groundMesh.material.color.set(d.groundColor);
+  groundMesh.material.map = d.groundTexture === 'sandRipple' ? sandRippleMap : null;
+  groundMesh.material.bumpMap = d.groundTexture === 'sandRipple' ? sandRippleBump : null;
+  groundMesh.material.bumpScale = d.groundTexture === 'sandRipple' ? 0.055 : 0;
+  groundMesh.material.needsUpdate = true;
+  majlisStars.visible = !!d.stars;
   document.getElementById('label-en').textContent = d.nameEn;
   document.getElementById('label-ar').textContent = d.nameAr;
+}
+
+function applySceneCamera(key) {
+  const cam = SCENES[key]?.camera || { position: [0, 2, 5], target: [0, 0.5, 0] };
+  const position = new THREE.Vector3(...cam.position);
+  const target = new THREE.Vector3(...cam.target);
+  controls.maxDistance = Math.max(20, position.distanceTo(target) * 1.25);
+  camera.position.copy(position);
+  controls.target.copy(target);
+  controls.update();
 }
 
 function loadGltf(assetKey) {
@@ -637,11 +816,53 @@ function applyUserDataToModel(model, data) {
   });
 }
 
+function createObjectTexture(textureKey, repeat = [1, 1]) {
+  const url = TEXTURE_ASSETS[textureKey];
+  if (!url) return null;
+
+  const texture = textureLoader.load(url);
+  texture.wrapS = THREE.RepeatWrapping;
+  texture.wrapT = THREE.RepeatWrapping;
+  texture.repeat.set(...repeat);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  texture.anisotropy = Math.min(renderer.capabilities.getMaxAnisotropy(), 8);
+  return texture;
+}
+
+function applyTextureToMaterial(material, textureKey, repeat) {
+  if (!material) return;
+  const texture = createObjectTexture(textureKey, repeat);
+  if (!texture) return;
+
+  material.map = texture;
+  if (material.color) material.color.set(0xffffff);
+  material.roughness = Math.max(material.roughness ?? 0.75, 0.82);
+  material.needsUpdate = true;
+}
+
+function applyObjectTexture(object, objectDef) {
+  if (!objectDef.texture) return;
+
+  object.traverse?.(child => {
+    if (!child.isMesh || !child.geometry?.attributes?.uv) return;
+    if (Array.isArray(child.material)) {
+      child.material.forEach(mat => applyTextureToMaterial(mat, objectDef.texture, objectDef.textureRepeat));
+    } else {
+      applyTextureToMaterial(child.material, objectDef.texture, objectDef.textureRepeat);
+    }
+  });
+
+  if (object.isMesh && object.geometry?.attributes?.uv) {
+    applyTextureToMaterial(object.material, objectDef.texture, objectDef.textureRepeat);
+  }
+}
+
 function createPrimitiveObject(od) {
   const geo = od.shape === 'cylinder'
     ? new THREE.CylinderGeometry(od.scale[0], od.scale[0]*1.1, od.scale[1], 16)
     : new THREE.BoxGeometry(...od.scale);
   const mat  = new THREE.MeshStandardMaterial({ color: od.color, roughness: 0.75, metalness: 0.1 });
+  applyTextureToMaterial(mat, od.texture, od.textureRepeat);
   const mesh = new THREE.Mesh(geo, mat);
   mesh.position.set(...od.pos);
   mesh.castShadow = mesh.receiveShadow = true;
@@ -670,6 +891,7 @@ async function addObjectModel(od, token) {
     if (token !== buildToken) return;
     const model = cloneGltfScene(gltf);
     fitModelToSetup(model, od);
+    applyObjectTexture(model, od);
     applyUserDataToModel(model, od);
     scene.add(model);
     placeholders.push(model);
@@ -703,8 +925,7 @@ function switchScene(key) {
   currentKey = key;
   applyScene(key); buildPlaceholders(key); deselect();
   setStatus(`Scene: ${SCENES[key].nameEn}`);
-  const cam = SCENES[key].camera || { position: [0, 2, 5], target: [0, 0.5, 0] };
-  camera.position.set(...cam.position); controls.target.set(...cam.target); controls.update();
+  applySceneCamera(key);
   if (window._buildChecklist) window._buildChecklist(key);
 }
 
@@ -829,7 +1050,7 @@ function animate() {
   renderer.render(scene, camera);
 }
 
-applyScene('majlis_ext'); buildPlaceholders('majlis_ext'); animate();
+applyScene('majlis_ext'); buildPlaceholders('majlis_ext'); applySceneCamera('majlis_ext'); animate();
 
 window._switchScene     = switchScene;
 window._highlightObject = highlightObject;
@@ -1111,6 +1332,50 @@ function transitionTo(sceneKey) {
   updateProgressDots();
   if (window._switchScene) window._switchScene(sceneKey);
   buildChecklist(sceneKey);
+  updateTemporarySceneButton();
+}
+
+function getTemporaryNextScene() {
+  const currentScene = gameState.current_scene;
+  const configuredNext = SCENE_REQUIREMENTS[currentScene]?.next_scene;
+  if (configuredNext) return configuredNext;
+
+  const currentIndex = window._STORY_ORDER?.indexOf(currentScene) ?? -1;
+  if (currentIndex >= 0) return window._STORY_ORDER[currentIndex + 1] || null;
+  return null;
+}
+
+function getSceneShortName(sceneKey) {
+  return {
+    majlis_ext: 'Majlis exterior',
+    majlis: 'Majlis',
+    masjid_ext: 'Masjid exterior',
+    masjid: 'Masjid',
+    zubarah: 'Zubarah',
+  }[sceneKey] || sceneKey;
+}
+
+function updateTemporarySceneButton() {
+  const btn = document.getElementById('temp-scene-btn');
+  if (!btn) return;
+
+  const nextScene = getTemporaryNextScene();
+  btn.disabled = !nextScene;
+  btn.textContent = nextScene ? `Next: ${getSceneShortName(nextScene)}` : 'No next scene';
+}
+
+function temporaryNextScene() {
+  const nextScene = getTemporaryNextScene();
+  if (!nextScene) {
+    setStatus('No next scene');
+    return;
+  }
+
+  const tool = { name: 'transition_scene', args: { scene_id: nextScene } };
+  showToolPanel([tool]);
+  transitionTo(nextScene);
+  showBubble(`انتقال مؤقت بدون API · Temporary offline transition to ${getSceneShortName(nextScene)}.`, false);
+  setStatus(`Temporary transition: ${getSceneShortName(nextScene)}`);
 }
 
 // ── Progress dots — one per badge scene ───────────────────────────────────────
@@ -1392,6 +1657,7 @@ window.addEventListener('DOMContentLoaded', () => {
   setTimeout(() => {
     buildChecklist(gameState.current_scene);
     updateProgressDots();
+    updateTemporarySceneButton();
   }, 300);
   showBubble('مرحباً! أنا مريم — مرشدتك الثقافية في قطر. اضغط على المايكروفون أو ⌨ لتبدأ رحلتك. · Hello! I am Maryam, your Qatari cultural guide. Tap the mic or ⌨ to begin your journey.', false);
   setMicStatus(`Session: ${SESSION_ID}`);
