@@ -99,14 +99,6 @@
       align-items: center; justify-content: center;
       font-size: 14px; color: #F5C85A;
     }
-    #drop-hint {
-      position: absolute; inset: 0; display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
-      pointer-events: none; gap: 8px; opacity: 0.1;
-    }
-    #drop-hint .big { font-size: 48px; }
-    #drop-hint .msg { font-size: 14px; color: #f0e6d0; direction: ltr; }
-
     #audio-indicator {
       position: absolute; top: 14px; right: 16px;
       width: 8px; height: 8px; border-radius: 50%;
@@ -322,10 +314,6 @@
     <div class="ar" id="label-ar">المجلس التقليدي</div>
   </div>
 
-  <div id="drop-hint">
-    <div class="big">📦</div>
-    <div class="msg">Drop a .glb file to load it</div>
-  </div>
   <div id="loading-overlay">Loading model…</div>
   <div id="controls-hint">
     Left drag · Rotate<br>Right drag · Pan<br>Scroll · Zoom<br>Click · Select object
@@ -400,26 +388,26 @@ const MARYAM_SITTING_SCENE_ASSET = {
 
 const MAJLIS_SCENIC_OBJECTS = [
   { id:'camel', interactive:false, nameEn:'Arabian Camel', nameAr:'جمل العربي',
-    desc:'The Arabian camel — the "ship of the desert" — was the backbone of Bedouin life, carrying goods, providing milk, and serving as a symbol of wealth and endurance.',
+    desc:'الجمل العربي، المعروف باسم سفينة الصحراء، كان ركنا أساسيا في حياة البدو؛ يحمل المتاع، ويمنح الحليب، ويرمز إلى الثروة والصبر والقدرة على التحمل.',
     asset:'camel', targetSize:1.35, rot:[0, Math.PI * 0.18, 0],
     color:0xc8904a, shape:'box', pos:[-5.2, 0, 2.05], scale:[1.0, 1.3, 0.5] },
 ];
 
 const MAJLIS_EXPLORABLE_OBJECTS = [
   { id:'dallah', nameEn:'Dallah Coffee Pot', nameAr:'الدلة',
-    desc:'الدلة — the long-spouted coffee pot — is a symbol of Qatari hospitality. Gahwa (Arabic coffee) flavoured with cardamom and saffron is always served to guests.',
+    desc:'الدلة، إبريق القهوة ذو الفوهة الطويلة، رمز من رموز الضيافة القطرية. وتقدم القهوة العربية المنكهة بالهيل والزعفران للضيوف ترحيبا وتكريما لهم.',
     asset:'dallah', targetSize:0.55, rot:[0, 0, 0],
     color:0xC8A030, shape:'cylinder', pos:[ 0.0, 0.06, 0.82], scale:[0.18,0.55,0.18] },
   { id:'sadu_carpet', nameEn:'Sadu Carpet', nameAr:'بساط السدو',
-    desc:'Sadu weaving is a Bedouin textile tradition where geometric patterns encode tribal identity and stories. It is listed as UNESCO Intangible Cultural Heritage.',
+    desc:'نسج السدو تقليد بدوي عريق، تحمل زخارفه الهندسية دلالات عن الهوية والذاكرة والقصص المتوارثة. وقد أدرج ضمن التراث الثقافي غير المادي لدى اليونسكو.',
     texture:'saduPattern', textureRepeat:[1, 1],
     color:0x9A2C2C, shape:'box', pos:[ 0.0, 0.04, 1.2], scale:[3.2,0.06,2.4] },
   { id:'bakhoor', nameEn:'Bakhoor Incense', nameAr:'البخور',
-    desc:'Bakhoor — wood chips soaked in fragrant oils — is burned in a mabkhara and passed among guests as a gesture of welcome. The scent of oud is inseparable from Gulf hospitality.',
+    desc:'البخور قطع من الخشب المعطر بالزيوت الزكية، توضع في المبخرة وتمرر بين الضيوف كعلامة ترحيب. ورائحة العود جزء أصيل من أجواء الضيافة في الخليج.',
     asset:'bakhoor', targetSize:0.45, rot:[0, 0.2, 0],
     color:0x6B3A1F, shape:'box', pos:[ 0.9, 0.06, 1.2], scale:[0.3,0.35,0.3] },
   { id:'cushion', nameEn:'Floor Cushion', nameAr:'الوسادة',
-    desc:'Majlis seating is floor-level, with cushions lining all four walls. The circular arrangement symbolises equality — no seat is higher than another.',
+    desc:'تكون جلسة المجلس على مستوى الأرض، وتنتشر الوسائد على الجوانب لتمنح الضيوف الراحة. هذا النمط من الجلوس يعبر عن القرب والمساواة بين الحاضرين.',
     asset:'cushion', targetSize:0.6, rot:[0, 0, 0],
     texture:'cushionPattern', textureRepeat:[1, 1],
     color:0x8B2020, shape:'box', pos:[-1.6, 0.05, 0.8], scale:[0.9,0.22,0.65] },
@@ -485,10 +473,19 @@ const SCENES = {
   masjid_ext: {
     nameEn: 'Masjid Fanar — Exterior', nameAr: 'مسجد فنار',
     camera: { position: [0, 2.6, 7.0], target: [0, 1.35, 0] },
-    sky: 0x060810, fog: { color: 0x080c18, density: 0.04 },
-    ambient: { color: 0xc0d0ff, intensity: 0.4 },
-    dir:     { color: 0xd0e0ff, intensity: 0.9, pos: [-4, 9, 3] },
-    point:   { color: 0x4488ff, intensity: 0.5, pos: [0, 4, 0] },
+    sky: 0x060810, fog: { color: 0x080c18, density: 0.035 },
+    ambient: { color: 0xffedd6, intensity: 0.55 },
+    hemi:    { sky: 0xfff1d8, ground: 0x1c2238, intensity: 0.65 },
+    dir:     { color: 0xffd9a0, intensity: 1.15, pos: [-4, 8, 4] },
+    point:   { color: 0xffb347, intensity: 1.65, distance: 13, pos: [0, 3.8, 1.2] },
+    extraLights: [
+      { color:0xffa21f, intensity:2.1, distance:8,  pos:[-0.85, 1.15, 0.75] },
+      { color:0xffc04d, intensity:2.0, distance:9,  pos:[ 0.95, 2.25, 0.45] },
+      { color:0xffd36a, intensity:1.8, distance:10, pos:[-0.75, 3.45, 0.25] },
+      { color:0xffb347, intensity:1.55, distance:11, pos:[ 0.8, 4.6, -0.15] },
+      { kind:'spot', color:0xffb02e, intensity:3.4, distance:18, pos:[-3.4, 4.4, 4.0], target:[0, 4.2, 0], angle:0.24, penumbra:0.5 },
+      { kind:'spot', color:0xffcf63, intensity:2.8, distance:15, pos:[ 2.8, 2.3, 3.6], target:[0, 2.1, 0], angle:0.3, penumbra:0.58 },
+    ],
     groundColor: 0x2a3048,
     stars: true,
     sceneAssets: [
@@ -515,23 +512,24 @@ const SCENES = {
     groundColor: 0x1e2840,
     sceneAssets: [
       { asset:'fanarInterior', targetSize:12.0, pos:[0, 0, 0], rot:[0, 0, 0] },
+      { asset:'table', targetSize:1.25, pos:[-1.5, 0.08, 0.5], rot:[0, 0, 0] },
       { ...MARYAM_SITTING_SCENE_ASSET, pos:[1.45, 0, 0.25], rot:[0, 1.9, 0] },
     ],
     objects: [
       { id:'quran',   nameEn:'The Holy Quran',                nameAr:'قاعة الصلاة',
-        desc:'قاعة الصلاة — The Holy Quran is the central scripture of Islam, revealed to the Prophet Muhammad ﷺ over 23 years. Its recitation fills the prayer hall during every prayer.',
+        desc:'القرآن الكريم هو كتاب الإسلام المقدس، أنزل على النبي محمد ﷺ خلال ثلاثة وعشرين عاما. وتملأ تلاوته قاعة الصلاة في كل صلاة.',
         asset:'quran', targetSize:0.8, rot:[0, 0, 0],
         color:0x3a5a8a, shape:'box',      pos:[-1.15, 0, -2.0], scale:[3.0, 0.7, 2.2] },
       { id:'mihrab',  nameEn:'Mihrab',                        nameAr:'المحراب',
-        desc:'المحراب — The prayer niche indicates the qibla, the direction of the Kaaba in Mecca. All worshippers align to face it during salah.',
+        desc:'المحراب هو التجويف الذي يحدد اتجاه القبلة، أي اتجاه الكعبة المشرفة في مكة المكرمة. ويتجه المصلون نحوه عند أداء الصلاة.',
         asset:'mihrab', targetSize:2.8, rot:[0, 0, 0],
         color:0xB89060, shape:'box',      pos:[ 0, 0, -5.0], scale:[0.7, 1.6, 0.15] },
       { id:'hadeeth', nameEn:'Book of Prophetic Traditions',  nameAr:'الوضوء',
-        desc:'The Hadith are the recorded sayings and actions of the Prophet Muhammad ﷺ. Together with the Quran, they form the foundation of Islamic law and ethics.',
-        asset:'hadeeth', targetSize:0.6, rot:[-0.85, 0, 0],
-        color:0x5a4a2a, shape:'box',      pos:[-1.5, 0.08, 0.5], scale:[0.35, 0.7, 0.5] },
+        desc:'الحديث الشريف هو ما نقل من أقوال النبي محمد ﷺ وأفعاله وتوجيهاته. ومع القرآن الكريم، يشكل مصدرا أساسيا لفهم الشريعة والأخلاق الإسلامية.',
+        asset:'hadeeth', targetSize:0.7, rot:[0, 0, 0],
+        color:0x5a4a2a, shape:'box',      pos:[-1.5, 0.45, 0.5], scale:[0.35, 0.7, 0.5] },
       { id:'imam',    nameEn:'The Imam',                      nameAr:'الإمام',
-        desc:'الإمام leads the congregation in prayer and serves as a spiritual guide. At Masjid Fanar, the imam is also an educator in Islamic knowledge and culture.',
+        desc:'الإمام يؤم المصلين في الصلاة ويقوم بدور المرشد الروحي. وفي مسجد فنار، يسهم الإمام أيضا في تعليم المعرفة الإسلامية والتعريف بالثقافة.',
         asset:'imam', targetSize:1.5, rot:[0, -1.9, 0],
         color:0xf0e8d0, shape:'cylinder', pos:[ 1.4, 0, -4.6], scale:[0.22, 1.1, 0.22] },
     ]
@@ -547,16 +545,16 @@ const SCENES = {
     groundColor: 0x9a7a44,
     objects: [
       { id:'main_gate',   nameEn:'Main Gate',        nameAr:'البوابة الرئيسية',
-        desc:'The imposing gate of Al Zubarah Fort, built in 1938, was the last line of defence for what was once the largest pearling town in the Gulf.',
+        desc:'كانت البوابة الرئيسية لقلعة الزبارة، التي بنيت عام 1938، خط الدفاع الأخير عن منطقة كانت يوما من أكبر مدن صيد اللؤلؤ في الخليج.',
         color:0xb8945a, shape:'box',      pos:[ 0.0, 0.9, -1.8], scale:[1.4,1.8,0.3] },
       { id:'watchtower',  nameEn:'Watchtower',       nameAr:'برج المراقبة',
-        desc:'Round corner towers gave defenders a 360° view across the desert and sea. From here, guards could spot approaching threats hours in advance.',
+        desc:'أتاحت أبراج المراقبة الدائرية في الزوايا رؤية واسعة للصحراء والبحر من كل الجهات، مما ساعد الحراس على رصد أي خطر قادم قبل وصوله بوقت طويل.',
         color:0xc8a460, shape:'cylinder', pos:[ 1.9, 0.9,  0.2], scale:[0.35,1.8,0.35] },
       { id:'inner_court', nameEn:'Inner Courtyard',  nameAr:'الفناء الداخلي',
-        desc:'The open courtyard at the heart of the fort was used for stabling horses, training soldiers, and storing supplies during prolonged sieges.',
+        desc:'كان الفناء الداخلي المفتوح في قلب القلعة يستخدم لإيواء الخيل وتدريب الجنود وتخزين المؤن خلال فترات الحصار الطويلة.',
         color:0xa08840, shape:'box',      pos:[ 0.0, 0.05, 0.4], scale:[2.6,0.1,1.8] },
       { id:'well',        nameEn:'Ancient Well',     nameAr:'البئر القديمة',
-        desc:'The fortified well guaranteed a water supply during sieges. Al Zubarah is a UNESCO World Heritage Site — the best-preserved example of an 18th-century Gulf settlement.',
+        desc:'ضمن البئر المحصن توفر الماء أثناء الحصار. وتعد الزبارة موقعا مدرجا على قائمة التراث العالمي لليونسكو، وأحد أفضل الشواهد المحفوظة على مستوطنة خليجية من القرن الثامن عشر.',
         color:0x706050, shape:'cylinder', pos:[-1.8, 0.3,  0.5], scale:[0.3,0.6,0.3] },
     ]
   },
@@ -695,6 +693,7 @@ const MODEL_ASSETS = {
   quran: '/client/models/quran.glb',
   mihrab: '/client/models/mihrab.glb',
   hadeeth: '/client/models/hadeeth.glb',
+  table: '/client/models/table.glb',
   imam: '/client/models/imam.glb',
   maryamStanding: '/client/models/maryam_standing.glb',
   maryamSitting: '/client/models/maryam_sitting.glb',
@@ -741,9 +740,17 @@ function applyScene(key) {
   pointLight.position.set(...d.point.pos);
   sceneExtraLights.clear();
   (d.extraLights || []).forEach(lightDef => {
-    const light = new THREE.PointLight(lightDef.color, lightDef.intensity, lightDef.distance || 0);
+    const light = lightDef.kind === 'spot'
+      ? new THREE.SpotLight(lightDef.color, lightDef.intensity, lightDef.distance || 0, lightDef.angle || Math.PI / 5, lightDef.penumbra ?? 0.5, lightDef.decay || 2)
+      : new THREE.PointLight(lightDef.color, lightDef.intensity, lightDef.distance || 0);
     light.position.set(...lightDef.pos);
     sceneExtraLights.add(light);
+    if (lightDef.kind === 'spot') {
+      const target = new THREE.Object3D();
+      target.position.set(...(lightDef.target || [0, 1.5, 0]));
+      sceneExtraLights.add(target);
+      light.target = target;
+    }
   });
   groundMesh.material.color.set(d.groundColor);
   groundMesh.material.map = d.groundTexture === 'sandRipple' ? sandRippleMap : null;
@@ -1016,7 +1023,7 @@ function loadFile(file) {
     camera.position.set(ctr3.x+dist, ctr3.y+dist*0.6, ctr3.z+dist);
     controls.update();
     URL.revokeObjectURL(url); showLoading(false);
-    document.getElementById('drop-hint').style.display = 'none';
+    document.getElementById('drop-hint')?.style.setProperty('display', 'none');
     setStatus(`Loaded: ${file.name}`);
   }, xhr => { if (xhr.total) setStatus(`Loading… ${Math.round(xhr.loaded/xhr.total*100)}%`); },
   err => { showLoading(false); setStatus(`Error: ${err.message}`); });
