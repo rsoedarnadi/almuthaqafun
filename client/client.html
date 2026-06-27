@@ -379,15 +379,20 @@ const SCENES = {
   // ── Majlis exterior: camel + Bedouin tent ─────────────────────────────────
   majlis_ext: {
     nameEn: 'Traditional Majlis', nameAr: 'المجلس التقليدي',
+    camera: { position: [0, 2.0, 8.0], target: [0, 1.2, 0] },
     sky: 0x1a1008, fog: { color: 0x261808, density: 0.045 },
     ambient: { color: 0xffd8a0, intensity: 0.45 },
     dir:     { color: 0xffcc70, intensity: 1.1, pos: [8, 10, 4] },
     point:   { color: 0xff9944, intensity: 0.6, pos: [0, 3, 0] },
     groundColor: 0xb89050,
+    sceneAssets: [
+      { asset:'majlisTent', targetSize:9.5, pos:[0, 0, 0], rot:[0, 0, 0] },
+    ],
     objects: [
       { id:'camel',        interactive:false, nameEn:'Arabian Camel',  nameAr:'جمل العربي',
         desc:'The Arabian camel — the "ship of the desert" — was the backbone of Bedouin life, carrying goods, providing milk, and serving as a symbol of wealth and endurance.',
-        color:0xc8904a, shape:'box', pos:[-2.0, 0.65, 0.3], scale:[1.0, 1.3, 0.5] },
+        asset:'camel', targetSize:1.35, rot:[0, Math.PI * 0.18, 0],
+        color:0xc8904a, shape:'box', pos:[-5.2, 0, 2.05], scale:[1.0, 1.3, 0.5] },
       { id:'bedouin_tent', interactive:false, nameEn:'Bedouin Tent',   nameAr:'خيمة البدوي',
         desc:'Woven from goat and camel hair, the black Bedouin tent (بيت الشعر) is designed to keep cool in the summer heat while providing warmth in desert nights.',
         color:0x3a2810, shape:'box', pos:[ 1.8, 0.9, -0.3], scale:[2.8, 1.8, 1.6] },
@@ -397,6 +402,7 @@ const SCENES = {
   // ── Majlis interior: dallah, sadu carpet, bakhoor, cushion ───────────────
   majlis: {
     nameEn: 'Traditional Majlis — Interior', nameAr: 'المجلس التقليدي — الداخل',
+    camera: { position: [0, 2.0, 8.0], target: [0, 1.2, 0] },
     sky: 0x100804, fog: { color: 0x1a0e06, density: 0.09 },
     ambient: { color: 0xffe8c0, intensity: 0.55 },
     dir:     { color: 0xffcc66, intensity: 0.7,  pos: [3, 6, 2] },
@@ -405,13 +411,15 @@ const SCENES = {
     objects: [
       { id:'dallah',      nameEn:'Dallah Coffee Pot', nameAr:'الدلة',
         desc:'الدلة — the long-spouted coffee pot — is a symbol of Qatari hospitality. Gahwa (Arabic coffee) flavoured with cardamom and saffron is always served to guests.',
-        color:0xC8A030, shape:'cylinder', pos:[ 0.4, 0.3,  0.6],  scale:[0.18,0.55,0.18] },
+        asset:'dallah', targetSize:0.55, rot:[0, 0, 0],
+        color:0xC8A030, shape:'cylinder', pos:[ 0.0, 0.56, -0.82],  scale:[0.18,0.55,0.18] },
       { id:'sadu_carpet', nameEn:'Sadu Carpet',        nameAr:'بساط السدو',
         desc:'Sadu weaving is a Bedouin textile tradition where geometric patterns encode tribal identity and stories. It is listed as UNESCO Intangible Cultural Heritage.',
         color:0x9A2C2C, shape:'box',      pos:[ 0.0, 0.04, 0.0],  scale:[3.2,0.06,2.4] },
       { id:'bakhoor',     nameEn:'Bakhoor Incense',    nameAr:'البخور',
         desc:'Bakhoor — wood chips soaked in fragrant oils — is burned in a mabkhara and passed among guests as a gesture of welcome. The scent of oud is inseparable from Gulf hospitality.',
-        color:0x6B3A1F, shape:'box',      pos:[ 1.5, 0.2,  0.3],  scale:[0.3,0.35,0.3] },
+        asset:'bakhoor', targetSize:0.45, rot:[0, 0.2, 0],
+        color:0x6B3A1F, shape:'box',      pos:[ 0.9, 0.08, 0.18],  scale:[0.3,0.35,0.3] },
       { id:'cushion',     nameEn:'Floor Cushion',      nameAr:'الوسادة',
         desc:'Majlis seating is floor-level, with cushions lining all four walls. The circular arrangement symbolises equality — no seat is higher than another.',
         color:0x8B2020, shape:'box',      pos:[-1.6, 0.12, 0.0],  scale:[0.9,0.22,0.65] },
@@ -421,11 +429,15 @@ const SCENES = {
   // ── Masjid exterior: spiral minaret ──────────────────────────────────────
   masjid_ext: {
     nameEn: 'Masjid Fanar — Exterior', nameAr: 'مسجد فنار',
+    camera: { position: [0, 2.6, 7.0], target: [0, 1.35, 0] },
     sky: 0x060810, fog: { color: 0x080c18, density: 0.04 },
     ambient: { color: 0xc0d0ff, intensity: 0.4 },
     dir:     { color: 0xd0e0ff, intensity: 0.9, pos: [-4, 9, 3] },
     point:   { color: 0x4488ff, intensity: 0.5, pos: [0, 4, 0] },
     groundColor: 0x2a3048,
+    sceneAssets: [
+      { asset:'fanarExteriorLights', targetSize:8.5, pos:[0, 0, 0], rot:[0, 0, 0] },
+    ],
     objects: [
       { id:'minaret', interactive:false, nameEn:'Spiral Minaret', nameAr:'المئذنة',
         desc:'The iconic spiral minaret of Masjid Fanar is inspired by the ancient minaret of Samarra, Iraq. It rises 70 metres and is one of the most recognised landmarks of Doha.',
@@ -436,15 +448,20 @@ const SCENES = {
   // ── Masjid interior: quran, mihrab, hadeeth, imam ─────────────────────────
   masjid: {
     nameEn: 'Masjid Fanar — Interior', nameAr: 'مسجد فنار — الداخل',
+    camera: { position: [0, 1.35, 2.65], target: [0, 1.25, -1.55] },
     sky: 0x04060e, fog: { color: 0x060810, density: 0.07 },
     ambient: { color: 0xd0e4ff, intensity: 0.5 },
     dir:     { color: 0xe0eeff, intensity: 0.65, pos: [-2, 7, 2] },
     point:   { color: 0x6699ff, intensity: 0.8,  pos: [0, 3, 0] },
     groundColor: 0x1e2840,
+    sceneAssets: [
+      { asset:'fanarInterior', targetSize:12.0, pos:[0, 0, 0], rot:[0, 0, 0] },
+    ],
     objects: [
       { id:'quran',   nameEn:'The Holy Quran',                nameAr:'قاعة الصلاة',
         desc:'قاعة الصلاة — The Holy Quran is the central scripture of Islam, revealed to the Prophet Muhammad ﷺ over 23 years. Its recitation fills the prayer hall during every prayer.',
-        color:0x3a5a8a, shape:'box',      pos:[ 0.0, 0.4, -0.3], scale:[3.0, 0.7, 2.2] },
+        asset:'quran', targetSize:1.0, rot:[0, 0, 0],
+        color:0x3a5a8a, shape:'box',      pos:[-1.15, 0, -2.0], scale:[3.0, 0.7, 2.2] },
       { id:'mihrab',  nameEn:'Mihrab',                        nameAr:'المحراب',
         desc:'المحراب — The prayer niche indicates the qibla, the direction of the Kaaba in Mecca. All worshippers align to face it during salah.',
         color:0xB89060, shape:'box',      pos:[ 0.0, 0.8, -1.5], scale:[0.7, 1.6, 0.15] },
@@ -453,7 +470,8 @@ const SCENES = {
         color:0x5a4a2a, shape:'box',      pos:[-1.5, 0.35, 0.5], scale:[0.35, 0.7, 0.5] },
       { id:'imam',    nameEn:'The Imam',                      nameAr:'الإمام',
         desc:'الإمام leads the congregation in prayer and serves as a spiritual guide. At Masjid Fanar, the imam is also an educator in Islamic knowledge and culture.',
-        color:0xf0e8d0, shape:'cylinder', pos:[ 1.6, 0.55, 0.4], scale:[0.22, 1.1, 0.22] },
+        asset:'imam', targetSize:1.05, rot:[0, 0, 0],
+        color:0xf0e8d0, shape:'cylinder', pos:[ 1.35, 0, -1.85], scale:[0.22, 1.1, 0.22] },
     ]
   },
 
@@ -529,8 +547,22 @@ const dracoLoader = new DRACOLoader();
 dracoLoader.setDecoderPath('https://cdn.jsdelivr.net/npm/three@0.167.0/examples/jsm/libs/draco/');
 const gltfLoader = new GLTFLoader(); gltfLoader.setDRACOLoader(dracoLoader);
 
-let placeholders = []; let loadedModel = null; let selectedMesh = null;
+const MODEL_ASSETS = {
+  majlisTent: '/client/models/majlis_tent.glb',
+  camel: '/client/models/camel.glb',
+  dallah: '/client/models/dallah.glb',
+  bakhoor: '/client/models/bakhoor.glb',
+  fanarExterior: '/client/models/fanar_exterior.glb',
+  fanarExteriorLights: '/client/models/fanar_exterior_lights.glb',
+  fanarInterior: '/client/models/fanar_interior.glb',
+  quran: '/client/models/quran.glb',
+  imam: '/client/models/imam.glb',
+};
+const gltfCache = new Map();
+
+let placeholders = []; let sceneModels = []; let loadedModel = null; let selectedMesh = null;
 let currentKey = 'majlis_ext';
+let buildToken = 0;
 const raycaster = new THREE.Raycaster(); const mouse = new THREE.Vector2();
 
 // ── Resize ─────────────────────────────────────────────────────────────────────
@@ -554,16 +586,115 @@ function applyScene(key) {
   document.getElementById('label-ar').textContent = d.nameAr;
 }
 
+function loadGltf(assetKey) {
+  const url = MODEL_ASSETS[assetKey];
+  if (!url) return Promise.reject(new Error(`Unknown model asset: ${assetKey}`));
+  if (!gltfCache.has(url)) {
+    gltfCache.set(url, new Promise((resolve, reject) => {
+      gltfLoader.load(url, resolve, undefined, reject);
+    }));
+  }
+  return gltfCache.get(url);
+}
+
+function cloneGltfScene(gltf) {
+  const model = gltf.scene.clone(true);
+  model.traverse(child => {
+    if (!child.isMesh) return;
+    child.castShadow = true;
+    child.receiveShadow = true;
+    if (Array.isArray(child.material)) child.material = child.material.map(mat => mat.clone());
+    else if (child.material) child.material = child.material.clone();
+  });
+  return model;
+}
+
+function fitModelToSetup(model, setup) {
+  model.rotation.set(...(setup.rot || [0, 0, 0]));
+  model.updateMatrixWorld(true);
+
+  let box = new THREE.Box3().setFromObject(model);
+  const size = box.getSize(new THREE.Vector3());
+  const maxSize = Math.max(size.x, size.y, size.z) || 1;
+  const targetSize = setup.targetSize || 1;
+  model.scale.multiplyScalar(targetSize / maxSize);
+  model.updateMatrixWorld(true);
+
+  box = new THREE.Box3().setFromObject(model);
+  const center = box.getCenter(new THREE.Vector3());
+  const pos = setup.pos || setup.position || [0, 0, 0];
+  model.position.x += pos[0] - center.x;
+  model.position.y += pos[1] - box.min.y;
+  model.position.z += pos[2] - center.z;
+  model.updateMatrixWorld(true);
+}
+
+function applyUserDataToModel(model, data) {
+  model.userData = { ...model.userData, ...data };
+  model.traverse(child => {
+    if (!child.isMesh) return;
+    child.userData = { ...child.userData, ...data };
+  });
+}
+
+function createPrimitiveObject(od) {
+  const geo = od.shape === 'cylinder'
+    ? new THREE.CylinderGeometry(od.scale[0], od.scale[0]*1.1, od.scale[1], 16)
+    : new THREE.BoxGeometry(...od.scale);
+  const mat  = new THREE.MeshStandardMaterial({ color: od.color, roughness: 0.75, metalness: 0.1 });
+  const mesh = new THREE.Mesh(geo, mat);
+  mesh.position.set(...od.pos);
+  mesh.castShadow = mesh.receiveShadow = true;
+  mesh.userData = { ...od };
+  scene.add(mesh);
+  placeholders.push(mesh);
+}
+
+async function addSceneModel(assetDef, token) {
+  try {
+    const gltf = await loadGltf(assetDef.asset);
+    if (token !== buildToken) return;
+    const model = cloneGltfScene(gltf);
+    fitModelToSetup(model, assetDef);
+    scene.add(model);
+    sceneModels.push(model);
+  } catch (err) {
+    console.warn(`Failed to load scene asset ${assetDef.asset}:`, err);
+    setStatus(`Missing model: ${assetDef.asset}`);
+  }
+}
+
+async function addObjectModel(od, token) {
+  try {
+    const gltf = await loadGltf(od.asset);
+    if (token !== buildToken) return;
+    const model = cloneGltfScene(gltf);
+    fitModelToSetup(model, od);
+    applyUserDataToModel(model, od);
+    scene.add(model);
+    placeholders.push(model);
+  } catch (err) {
+    console.warn(`Failed to load object asset ${od.asset}; using primitive fallback`, err);
+    if (token === buildToken) createPrimitiveObject(od);
+  }
+}
+
+function clearBuiltScene() {
+  placeholders.forEach(m => scene.remove(m));
+  sceneModels.forEach(m => scene.remove(m));
+  placeholders = [];
+  sceneModels = [];
+}
+
 function buildPlaceholders(key) {
-  placeholders.forEach(m => scene.remove(m)); placeholders = [];
+  buildToken += 1;
+  const token = buildToken;
+  clearBuiltScene();
+
+  (SCENES[key].sceneAssets || []).forEach(assetDef => addSceneModel(assetDef, token));
   SCENES[key].objects.forEach(od => {
-    const geo = od.shape === 'cylinder'
-      ? new THREE.CylinderGeometry(od.scale[0], od.scale[0]*1.1, od.scale[1], 16)
-      : new THREE.BoxGeometry(...od.scale);
-    const mat  = new THREE.MeshStandardMaterial({ color: od.color, roughness: 0.75, metalness: 0.1 });
-    const mesh = new THREE.Mesh(geo, mat);
-    mesh.position.set(...od.pos); mesh.castShadow = mesh.receiveShadow = true;
-    mesh.userData = { ...od }; scene.add(mesh); placeholders.push(mesh);
+    if (od.asset) addObjectModel(od, token);
+    else createPrimitiveObject(od);
   });
 }
 
@@ -572,7 +703,8 @@ function switchScene(key) {
   currentKey = key;
   applyScene(key); buildPlaceholders(key); deselect();
   setStatus(`Scene: ${SCENES[key].nameEn}`);
-  camera.position.set(0, 2, 5); controls.target.set(0, 0.5, 0); controls.update();
+  const cam = SCENES[key].camera || { position: [0, 2, 5], target: [0, 0.5, 0] };
+  camera.position.set(...cam.position); controls.target.set(...cam.target); controls.update();
   if (window._buildChecklist) window._buildChecklist(key);
 }
 
@@ -585,17 +717,23 @@ canvas.addEventListener('click', e => {
   const targets = [...placeholders];
   if (loadedModel) loadedModel.traverse(c => { if (c.isMesh) targets.push(c); });
   const hits = raycaster.intersectObjects(targets, true);
-  if (hits.length && !hits[0].object.userData.isGround) select(hits[0].object);
+  if (hits.length && !hits[0].object.userData.isGround) select(getPlaceholderRoot(hits[0].object) || hits[0].object);
   else deselect();
 });
+
+function getPlaceholderRoot(object) {
+  let node = object;
+  while (node) {
+    if (placeholders.includes(node)) return node;
+    node = node.parent;
+  }
+  return null;
+}
 
 function select(mesh) {
   if (selectedMesh) resetColor(selectedMesh);
   selectedMesh = mesh;
-  if (mesh.material?.color) {
-    if (mesh.userData._origColor === undefined) mesh.userData._origColor = mesh.material.color.getHex();
-    mesh.material.color.set(0xF5C85A);
-  }
+  setHighlightColor(mesh, 0xF5C85A);
   if (mesh.userData.id) {
     if (mesh.userData.interactive === false) {
       setStatus(`${mesh.userData.nameEn} is scenic only`);
@@ -607,8 +745,23 @@ function select(mesh) {
 }
 function deselect() { if (selectedMesh) resetColor(selectedMesh); selectedMesh = null; }
 function resetColor(mesh) {
+  mesh.traverse?.(child => {
+    if (child.material?.color && child.userData._origColor !== undefined)
+      child.material.color.set(child.userData._origColor);
+  });
   if (mesh.material?.color && mesh.userData._origColor !== undefined)
     mesh.material.color.set(mesh.userData._origColor);
+}
+function setHighlightColor(object, color) {
+  object.traverse?.(child => {
+    if (!child.material?.color) return;
+    if (child.userData._origColor === undefined) child.userData._origColor = child.material.color.getHex();
+    child.material.color.set(color);
+  });
+  if (object.material?.color) {
+    if (object.userData._origColor === undefined) object.userData._origColor = object.material.color.getHex();
+    object.material.color.set(color);
+  }
 }
 
 function highlightObject(objId) {
@@ -616,10 +769,7 @@ function highlightObject(objId) {
   if (!mesh) return;
   if (selectedMesh) resetColor(selectedMesh);
   selectedMesh = mesh;
-  if (mesh.material?.color) {
-    if (mesh.userData._origColor === undefined) mesh.userData._origColor = mesh.material.color.getHex();
-    mesh.material.color.set(0xF5C85A);
-  }
+  setHighlightColor(mesh, 0xF5C85A);
   const box = new THREE.Box3().setFromObject(mesh);
   controls.target.copy(box.getCenter(new THREE.Vector3())); controls.update();
 }

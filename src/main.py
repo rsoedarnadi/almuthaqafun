@@ -9,6 +9,7 @@ from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse, Response
+from fastapi.staticfiles import StaticFiles
 from openai import OpenAI
 from pydantic import BaseModel, Field
 
@@ -20,6 +21,11 @@ from src.storyline.storyline import GameState, StoryPhase
 from src.tools.tools import dispatch_tool
 
 app = FastAPI(title="Al Muthaqafun Backend Gate")
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+CLIENT_DIR = PROJECT_ROOT / "client"
+
+if CLIENT_DIR.exists():
+    app.mount("/client", StaticFiles(directory=CLIENT_DIR), name="client")
 
 # ── Dynamic CORS Gateway ──────────────────────────────────────────────────────
 # "null" allows files opened directly in browser tabs (file:// protocol).

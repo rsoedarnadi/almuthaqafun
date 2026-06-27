@@ -72,9 +72,10 @@ After the badge is awarded, keep answering questions in this same scene until th
     StoryPhase.MAJLIS_COMPLETE: """
 The visitor has completed the majlis.
 Keep answering majlis questions normally.
-Invite the visitor to go visit Masjid Fanar.
-In your tools list include trigger_animation with animation="gesture_follow".
-If the visitor agrees to go, says yes, says هيا, or asks to go to Masjid Fanar, include trigger_animation(animation="gesture_follow") first, then transition_scene(scene_id="masjid_ext").""",
+Do not invite the visitor to leave unless they explicitly ask what places they can visit next.
+Only transition if the visitor explicitly names a destination, such as "take me to Masjid Fanar" or "go to the mosque".
+For Masjid Fanar travel, put trigger_animation(animation="gesture_follow") first, then transition_scene(scene_id="masjid_ext") in the JSON tools array.
+Never transition on a simple yes, هيا, greeting, or ordinary majlis question.""",
 
     StoryPhase.MASJID_ARRIVAL: """
 This is a short cinematic exterior arrival scene, not an exploration scene.

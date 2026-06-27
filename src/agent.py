@@ -189,7 +189,7 @@ def _message_requests_transition(user_message: str) -> bool:
     transition_keywords = [
         "خذني", "اذهب", "انتقل", "دعنا نذهب", "ادخل", "ندخل",
         "المشهد التالي", "مشهد آخر", "مكان آخر",
-        "take me", "go to", "let's go", "visit", "enter", "go inside",
+        "take me", "go to", "let's go", "lets go", "let’s go", "visit", "enter", "go inside",
         "next scene", "another scene", "move on",
     ]
     return any(keyword in msg for keyword in transition_keywords)
@@ -208,6 +208,51 @@ def _filter_model_award_badge_tools(tools: list) -> list:
     return [
         tool for tool in tools
         if (tool or {}).get("name") != "award_badge"
+    ]
+
+
+def _infer_requested_scene_id(user_message: str, current_scene: str) -> str | None:
+    msg = (user_message or "").lower()
+
+    if any(term in msg for term in ["masjid", "fanar", "mosque", "مسجد", "فنار"]):
+        return "masjid" if current_scene == "masjid_ext" and any(term in msg for term in ["enter", "inside", "ادخل", "ندخل"]) else "masjid_ext"
+
+    if any(term in msg for term in ["majlis", "مجلس"]):
+        return "majlis" if current_scene == "majlis_ext" and any(term in msg for term in ["enter", "inside", "ادخل", "ندخل"]) else "majlis_ext"
+
+    if any(term in msg for term in ["zubarah", "fort", "زبارة", "قلعة"]):
+        return "zubarah"
+
+    return None
+
+
+def _ensure_requested_transition_tool(user_message: str, state: GameState, tools: list) -> list:
+    if not _message_requests_transition(user_message):
+        return tools
+    if any((tool or {}).get("name") == "transition_scene" for tool in tools):
+        return tools
+
+    target_scene = _infer_requested_scene_id(user_message, state.current_scene)
+    if not target_scene or target_scene == state.current_scene:
+        return tools
+
+    transition_lines = {
+        "majlis_ext": "هيا بنا إلى المجلس. · Let us go to the majlis.",
+        "majlis": "تفضّل، لندخل المجلس الآن. · Please come in; let us enter the majlis now.",
+        "masjid_ext": "حسنًا، فلنبدأ رحلتنا نحو مسجد فنار. · Let us begin our journey to Masjid Fanar.",
+        "masjid": "تفضّل، لندخل مسجد فنار الآن. · Please follow me; let us enter Masjid Fanar now.",
+        "zubarah": "هيا بنا إلى قلعة الزبارة. · Let us go to Al Zubarah Fort.",
+    }
+
+    return tools + [
+        {"name": "trigger_animation", "args": {"animation": "gesture_follow"}},
+        {
+            "name": "transition_scene",
+            "args": {
+                "scene_id": target_scene,
+                "transition_line": transition_lines.get(target_scene, "هيا بنا. · Let us go."),
+            },
+        },
     ]
 
 
@@ -410,6 +455,7 @@ async def run_turn(
     tools = _ensure_explore_tool_for_clicked_object(user_message, state, tools)
     tools = _filter_transition_tools(user_message, tools)
     tools = _filter_model_award_badge_tools(tools)
+    tools = _ensure_requested_transition_tool(user_message, state, tools)
     tools = _auto_transition_from_exterior(start_scene, user_message, tools)
     tools, appended_award_badge = _ensure_award_badge_after_answer(user_message, state, tools)
 
