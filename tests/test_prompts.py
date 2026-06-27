@@ -1,3 +1,4 @@
+#tests/test_prompts.py
 import sys
 from pathlib import Path
 
@@ -10,7 +11,6 @@ if root_dir not in sys.path:
 import pytest
 import asyncio
 import io
-import sys
 
 # This prevents Python from crashing with UnicodeEncodeError in standard Windows CMD/PowerShell or non-UTF-8 terminals
 if hasattr(sys.stdout, 'buffer') and sys.stdout.encoding != 'utf-8':
@@ -41,7 +41,7 @@ async def test_intro_scene_prompt():
     # Ensure Maryam's identity and bilingual guidelines are intact
     assert "مريم" in result or "Maryam" in result, "Prompt must establish Maryam's identity in Arabic or English."
     assert "الدلة" in result or "dallah" in result, "Prompt must contain reference to Dallah (الدلة)."
-    assert "MAJLIS_INTRO" in result or "majlis_intro" in result, "Current phase should be mapped in prompt."
+    assert "majlis_intro" in result, "Current phase should be mapped in prompt."
     
     print("\n" + "="*80)
     print(" [TEST SUCCESS] SYSTEM PROMPT FOR: MAJLIS_INTRO")
@@ -83,6 +83,7 @@ async def test_explore_scene_prompt():
     print("="*80)
     print(result)
     print("="*80)
+
 
 @pytest.mark.asyncio
 async def test_complete_scene_prompt():
@@ -128,13 +129,14 @@ async def test_masjid_arrival_prompt():
     """
     state = GameState()
     state.current_phase = StoryPhase.MASJID_ARRIVAL
-    state.current_scene = "masjid"
+    # Changed from interior 'masjid' to exterior 'masjid_ext' to perfectly match minaret requirements 
+    state.current_scene = "masjid_ext"
     
     result = build_system_prompt(state)
     
     # Assertions
     assert len(result) > 1000
-    assert "masjid" in result, "Current scene must be registered as masjid."
+    assert "masjid_ext" in result, "Current scene must be registered as masjid_ext."
     assert "minaret" in result or "المئذنة" in result, "Mosque objects like the minaret (المئذنة) must be exposed to the agent."
     assert "spiral minaret" in result or "الحلزونية" in result, "Phase instructions for Masjid arrival must be integrated."
     
@@ -150,5 +152,6 @@ if __name__ == "__main__":
     print("Starting Al Muthaqafun Prompt Test Diagnostic...\n")
     asyncio.run(test_intro_scene_prompt())
     asyncio.run(test_explore_scene_prompt())
+    asyncio.run(test_complete_scene_prompt())
     asyncio.run(test_masjid_arrival_prompt())
     print("\nAll prompt diagnostics completed successfully!")
